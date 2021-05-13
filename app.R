@@ -28,6 +28,7 @@ if(!require(shiny)) install.packages("shiny", repos = "http://cran.us.r-project.
 if(!require(shinyWidgets)) install.packages("shinyWidgets", repos = "http://cran.us.r-project.org")
 if(!require(shinydashboard)) install.packages("shinydashboard", repos = "http://cran.us.r-project.org")
 if(!require(shinythemes)) install.packages("shinythemes", repos = "http://cran.us.r-project.org")
+if(!require(tidyr)) install.packages("tidyr", repos = "http://cran.us.r-project.org")
 
 # set mapping colour for each outbreak
 covid_col = "#014419"
@@ -45,6 +46,13 @@ h1n1_cases = read.csv("input_data/h1n1.csv")
 worldcountry = geojson_read("input_data/50m.geojson", what = "sp")
 country_geoms = read.csv("input_data/country_geoms.csv")
 cv_states = read.csv("input_data/coronavirus_states.csv")
+
+# import and process data for dashboard (YJ)----------------------------------------------------------------------
+co2<-read.csv("co2.csv")
+con_pro<-read.csv('con_pro.csv')
+data_long <- gather(co2, sources, emission_per_capita, cement_co2_per_capita:other_co2_per_capita, factor_key=TRUE)
+data2_long<- gather(data_long, emission_type, annual_emission, co2, consumption_co2, factor_key=TRUE)
+intersect_country<-intersect(unique(co2$country),unique(con_pro$Country))
 
 
 ### MAP FUNCTIONS ###
@@ -294,6 +302,25 @@ ui <- bootstrapPage(
                                                                          "Johns Hopkins Center for Systems Science and Engineering.")
              ),
              
+             tabPanel("Dashboard",
+                      titlePanel("CO2 Emission"),
+                      sidebarLayout(
+                        position = "left",
+                        sidebarPanel(h3("Select country"), 
+                                     selectInput("country", "", choices = unique(intersect_country) ,selected = "Malaysia"),
+                                     h5("In , Malaysia had  of CO2 Emission. In 2020.")
+                                     ),
+                        
+                        mainPanel(
+                          h5("PRIMARY SOURCES OF CO2 EMISSION PER CAPITA"),
+                          plotOutput("plot"),
+                          h5("TYPE OF CO2 EMISSION"),
+                          plotOutput('percountry')
+                          
+                        )
+                      )
+             ),
+             
              tabPanel("About this site",
                       tags$h1("Group 10"
                               
@@ -481,6 +508,41 @@ server = function(input, output, session) {
     print(tail(cv_cases_sub, input$maxrows), row.names = FALSE)
     options(orig)
   })
+  
+  ## Server for Dashboard (YJ) ---------------------------------------------------------------------------------------
+  output$plot <- renderPlot(
+    data_long %>% filter(country == input$country) %>% 
+      ggplot(aes(x=Year, y=emission_per_capita, fill=sources)) +
+      ylab(label = 'CO2 Emission per capita') +
+      geom_area()+
+      theme   (axis.text.x        = element_text(size = 12),
+               panel.background   = element_rect(fill='white'),
+               panel.grid.major.y = element_line(color = 'grey'),
+               panel.grid.minor.y = element_line(color = 'grey'),
+               panel.grid.major.x = element_line(color = 'grey90'))
+  )
+
+  
+  output$percountry = renderPlot(
+    
+    con_pro %>%
+      filter(Country == input$country, Record %in% c('CBA_GgCO2', 'PBA_GgCO2')) %>%
+      gather(key = 'Year', value = 'Emission', -c(1:2)) %>%
+      mutate(Year = as.numeric(substr(Year, 2, 5))) %>%
+      mutate(Emission=as.numeric(Emission))%>%
+      mutate(Record = ifelse(Record == 'CBA_GgCO2', 'Consumption', 'Production')) %>%
+      
+      ggplot(aes(x = Year, y = Emission, color = Record)) +
+      geom_line(size = 2) +
+      ylab(label = 'Emissions (in GgCO2)') +
+      scale_color_discrete(name = 'Emission Type') +
+      theme   (axis.text.x        = element_text(size = 12),
+               panel.background   = element_rect(fill='white'),
+               panel.grid.major.y = element_line(color = 'grey'),
+               panel.grid.minor.y = element_line(color = 'grey'),
+               panel.grid.major.x = element_line(color = 'grey90'))
+    
+  )
   
 }
 
