@@ -29,6 +29,7 @@ if(!require(shinyWidgets)) install.packages("shinyWidgets", repos = "http://cran
 if(!require(shinydashboard)) install.packages("shinydashboard", repos = "http://cran.us.r-project.org")
 if(!require(shinythemes)) install.packages("shinythemes", repos = "http://cran.us.r-project.org")
 if(!require(tidyr)) install.packages("tidyr", repos = "http://cran.us.r-project.org")
+if(!require(scales)) install.packages("scales", repos = "http://cran.us.r-project.org")
 
 # set mapping colour for each outbreak
 covid_col = "#014419"
@@ -50,9 +51,17 @@ cv_states = read.csv("input_data/coronavirus_states.csv")
 # import and process data for dashboard (YJ)----------------------------------------------------------------------
 co2<-read.csv("co2.csv")
 con_pro<-read.csv('con_pro.csv')
+co2$cement_co2_per_capita[is.na(co2$cement_co2_per_capita)] <- 0
+co2$coal_co2_per_capita[is.na(co2$coal_co2_per_capita)] <- 0
+co2$flaring_co2_per_capita[is.na(co2$flaring_co2_per_capita)] <- 0
+co2$gas_co2_per_capita[is.na(co2$gas_co2_per_capita)] <- 0
+co2$oil_co2_per_capita[is.na(co2$oil_co2_per_capita)] <- 0
+co2$other_co2_per_capita[is.na(co2$other_co2_per_capita)] <- 0
 data_long <- gather(co2, sources, emission_per_capita, cement_co2_per_capita:other_co2_per_capita, factor_key=TRUE)
 data2_long<- gather(data_long, emission_type, annual_emission, co2, consumption_co2, factor_key=TRUE)
 intersect_country<-intersect(unique(co2$country),unique(con_pro$Country))
+
+
 
 
 ### MAP FUNCTIONS ###
@@ -308,7 +317,9 @@ ui <- bootstrapPage(
                         position = "left",
                         sidebarPanel(h3("Select country"), 
                                      selectInput("country", "", choices = unique(intersect_country) ,selected = "Malaysia"),
-                                     h5("In , Malaysia had  of CO2 Emission. In 2020.")
+                                     h5(""),
+                                     h5("PROPORTION OF CO2 EMISSION SOURCES IN 2019"),
+                                     plotOutput('pie')
                                      ),
                         
                         mainPanel(
@@ -515,12 +526,24 @@ server = function(input, output, session) {
       ggplot(aes(x=Year, y=emission_per_capita, fill=sources)) +
       ylab(label = 'CO2 Emission per capita') +
       geom_area()+
+      labs(fill = "Sources") +
       theme   (axis.text.x        = element_text(size = 12),
                panel.background   = element_rect(fill='white'),
                panel.grid.major.y = element_line(color = 'grey'),
                panel.grid.minor.y = element_line(color = 'grey'),
                panel.grid.major.x = element_line(color = 'grey90'))
   )
+  
+  output$pie <- renderPlot(
+   data_long %>% filter(country == input$country, Year==2019, emission_per_capita!=0) %>%
+   ggplot(aes(x=2, y=emission_per_capita, fill=reorder(sources, -emission_per_capita))) +
+     geom_bar(stat="identity", color="grey") +
+     geom_text(aes(label = paste0((round(((emission_per_capita/sum(emission_per_capita))*100),digits=1)), "%")), position = position_stack(vjust=0.5))+
+     coord_polar(theta="y", start=0) +
+     labs(fill = "Sources") +
+     xlim(0.5,2.5)+
+     theme_void()
+    )
 
   
   output$percountry = renderPlot(
