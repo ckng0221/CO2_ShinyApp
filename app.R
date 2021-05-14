@@ -321,14 +321,14 @@ ui <- bootstrapPage(
                                      htmlOutput("selected_var"),
                                      br(),
                                      h6("PROPORTION OF CO2 EMISSION SOURCES IN 2019"),
-                                     plotOutput('pie')
+                                     plotlyOutput('pie')
                                      ),
                         
                         mainPanel(
                           h6("PRIMARY SOURCES OF CO2 EMISSION PER CAPITA"),
-                          plotOutput("plot"),
+                          plotlyOutput("plot"),
                           h6("TYPE OF CO2 EMISSION"),
-                          plotOutput('percountry')
+                          plotlyOutput('percountry')
                           
                         )
                       )
@@ -524,7 +524,7 @@ server = function(input, output, session) {
   })
   
   ## Server for Dashboard (YJ) ---------------------------------------------------------------------------------------
-  output$plot <- renderPlot(
+  output$plot <- renderPlotly(
     data_long %>% filter(country == input$country) %>% 
       ggplot(aes(x=Year, y=emission_per_capita, fill=reorder(sources, -emission_per_capita))) +
       ylab(label = 'CO2 Emission per capita (tonnes)') +
@@ -537,20 +537,27 @@ server = function(input, output, session) {
                panel.grid.major.x = element_line(color = 'grey90'))
   )
   
-  output$pie <- renderPlot(
-   data_long %>% filter(country == input$country, Year==2019, emission_per_capita!=0) %>%
-   ggplot(aes(x=2, y=emission_per_capita, fill=reorder(sources, -emission_per_capita))) +
-     geom_bar(stat="identity", color="grey") +
-     geom_text(aes(label = paste0((round(((emission_per_capita/sum(emission_per_capita))*100),digits=1)), "%")), position = position_stack(vjust=0.5))+
-     coord_polar(theta="y", start=0) +
-     labs(fill = "Sources") +
-     xlim(0.5,2.5)+
-     theme_void()
-    )
-
+  # output$pie <- renderPlot(
+  #  data_long %>% filter(country == input$country, Year==2019, emission_per_capita!=0) %>%
+  #  ggplot(aes(x=2, y=emission_per_capita, fill=reorder(sources, -emission_per_capita))) +
+  #    geom_bar(stat="identity", color="grey") +
+  #    geom_text(aes(label = paste0((round(((emission_per_capita/sum(emission_per_capita))*100),digits=1)), "%")), position = position_stack(vjust=0.5))+
+  #    coord_polar(theta="y", start=0) +
+  #    labs(fill = "Sources") +
+  #    xlim(0.5,2.5)+
+  #    theme_void()
+  #   )
   
+  output$pie <- renderPlotly(
+    data_long %>% filter(country == input$country, Year==2019, emission_per_capita!=0) %>%
+      plot_ly(labels = ~sources, values = ~emission_per_capita) %>% 
+      add_pie(hole = 0.6)%>% 
+      layout(title = "",  showlegend = T,
+             xaxis = list(showgrid = FALSE, zeroline = TRUE, showticklabels = TRUE),
+             yaxis = list(showgrid = FALSE, zeroline = TRUE, showticklabels = TRUE))
+  )
   
-  output$percountry = renderPlot(
+    output$percountry = renderPlotly(
     
     con_pro %>%
       filter(Country == input$country, Record %in% c('CBA_GgCO2', 'PBA_GgCO2')) %>%
@@ -561,7 +568,7 @@ server = function(input, output, session) {
       
       ggplot(aes(x = Year, y = Emission, color = Record)) +
       geom_line(size = 2) +
-      ylab(label = 'Emissions (in GgCO2)') +
+      ylab(label = 'CO2 Emission (GgCO2)') +
       scale_color_discrete(name = 'Emission Type') +
       theme   (axis.text.x        = element_text(size = 12),
                panel.background   = element_rect(fill='white'),
