@@ -267,7 +267,7 @@ ui <- bootstrapPage(
   tags$head(includeHTML("gtag.html")),
   navbarPage(theme = shinytheme("flatly"), collapsible = TRUE,
              HTML('<a style="text-decoration:none;cursor:default;color:#FFFFFF;" class="active" href="#">CO2 tracker</a>'), id="nav",
-             windowTitle = "CO2 tracker",
+             windowTitle = "CO2 TRACKER",
              
              tabPanel("CO2 mapper",
                       div(class="outer",
@@ -310,12 +310,13 @@ ui <- bootstrapPage(
                                                                          "Johns Hopkins Center for Systems Science and Engineering.")
              ),
              
+             
              tabPanel("Dashboard",
-                      titlePanel("CO2 Emission"),
+                      titlePanel(""),
                       sidebarLayout(
                         position = "left",
                         sidebarPanel(h3("Select country"), 
-                                     selectInput("country", "", choices = unique(intersect_country) ,selected = "Malaysia"),
+                                     pickerInput("country", "", choices = unique(intersect_country) ,selected = "Malaysia"),
                                      h5(""),
                                      htmlOutput("selected_var"),
                                      br(),
@@ -333,6 +334,7 @@ ui <- bootstrapPage(
                       )
              ),
              
+        
              tabPanel("About this site",
                       tags$h1("Group 10"
                               
