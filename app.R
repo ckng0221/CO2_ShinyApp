@@ -63,7 +63,6 @@ intersect_country<-intersect(unique(co2$country),unique(con_pro$Country))
 
 
 
-
 ### MAP FUNCTIONS ###
 # function to plot cumulative COVID cases by date
 cumulative_plot = function(cv_aggregated, plot_date) {
@@ -318,14 +317,16 @@ ui <- bootstrapPage(
                         sidebarPanel(h3("Select country"), 
                                      selectInput("country", "", choices = unique(intersect_country) ,selected = "Malaysia"),
                                      h5(""),
-                                     h5("PROPORTION OF CO2 EMISSION SOURCES IN 2019"),
+                                     htmlOutput("selected_var"),
+                                     br(),
+                                     h6("PROPORTION OF CO2 EMISSION SOURCES IN 2019"),
                                      plotOutput('pie')
                                      ),
                         
                         mainPanel(
-                          h5("PRIMARY SOURCES OF CO2 EMISSION PER CAPITA"),
+                          h6("PRIMARY SOURCES OF CO2 EMISSION PER CAPITA"),
                           plotOutput("plot"),
-                          h5("TYPE OF CO2 EMISSION"),
+                          h6("TYPE OF CO2 EMISSION"),
                           plotOutput('percountry')
                           
                         )
@@ -523,8 +524,8 @@ server = function(input, output, session) {
   ## Server for Dashboard (YJ) ---------------------------------------------------------------------------------------
   output$plot <- renderPlot(
     data_long %>% filter(country == input$country) %>% 
-      ggplot(aes(x=Year, y=emission_per_capita, fill=sources)) +
-      ylab(label = 'CO2 Emission per capita') +
+      ggplot(aes(x=Year, y=emission_per_capita, fill=reorder(sources, -emission_per_capita))) +
+      ylab(label = 'CO2 Emission per capita (tonnes)') +
       geom_area()+
       labs(fill = "Sources") +
       theme   (axis.text.x        = element_text(size = 12),
@@ -546,6 +547,7 @@ server = function(input, output, session) {
     )
 
   
+  
   output$percountry = renderPlot(
     
     con_pro %>%
@@ -566,6 +568,15 @@ server = function(input, output, session) {
                panel.grid.major.x = element_line(color = 'grey90'))
     
   )
+  
+  output$selected_var <- renderText({ 
+    
+    perct<-data_long %>% filter(country == "Malaysia", Year==2019, emission_per_capita!=0) %>% mutate(pect=round((emission_per_capita/sum(emission_per_capita))*100,digits=2))
+    max_sources<-perct$sources[which.max(perct$pect)]
+    max_perct<-perct$pect[which.max(perct$pect)]
+    paste("As of 2019, ", "<b>",max_perct,"</b>", "% of co2 was contributed by ","<b>",sub("_.*", "", max_sources),"</b>"," as the largest sources of co2 emission in", "<b>",input$country,"</b>",".")
+  })
+  
   
 }
 
