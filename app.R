@@ -571,7 +571,7 @@ server = function(input, output, session) {
   
   output$selected_var <- renderText({ 
     
-    perct<-data_long %>% filter(country == "Malaysia", Year==2019, emission_per_capita!=0) %>% mutate(pect=round((emission_per_capita/sum(emission_per_capita))*100,digits=2))
+    perct<-data_long %>% filter(country == input$country, Year==2019, emission_per_capita!=0) %>% mutate(pect=round((emission_per_capita/sum(emission_per_capita))*100,digits=2))
     max_sources<-perct$sources[which.max(perct$pect)]
     max_perct<-perct$pect[which.max(perct$pect)]
     paste("As of 2019, ", "<b>",max_perct,"</b>", "% of co2 was contributed by ","<b>",sub("_.*", "", max_sources),"</b>"," as the largest sources of co2 emission in", "<b>",input$country,"</b>",".")
