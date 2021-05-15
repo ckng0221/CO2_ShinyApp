@@ -1,4 +1,5 @@
 # import data -- CK
+
 library(dplyr)
 
 co2<-read.csv("co2.csv")
@@ -18,6 +19,31 @@ co2_cumulative_col <- "#011f44"
 
 ## --- new
 
+# ===== Ploting Functions ============================
+# Cumulative plot
+cumulative_plot = function(df, plot_date) {
+  plot_df = subset(df, Year<=plot_date)
+  g1 = ggplot(plot_df, aes(x = Year, y = cumulative_co2, color='Global')) + geom_line() + geom_point(size = 1, alpha = 0.8) +
+    ylab("CO2 (Cumulative)") +  xlab("Date") + theme_bw() + 
+    scale_colour_manual(values=c(co2_yearly_col)) +
+    scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
+    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10), 
+          plot.margin = margin(5, 12, 5, 5))
+  g1
+}
+
+# Yearly plot
+yearly_plot = function(df, plot_date) {
+  plot_df = subset(df, Year<=plot_date)
+  g1 = ggplot(plot_df, aes(x = Year, y = co2, color='Global')) + geom_line() + geom_point(size = 1, alpha = 0.8) +
+    ylab("CO2 (Yearly)") +  xlab("Date") + theme_bw() + 
+    scale_colour_manual(values=c(co2_yearly_col)) +
+    scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
+    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10), 
+          plot.margin = margin(5, 12, 5, 5))
+  g1
+}
+
 # Read for countries 
 countries = read.csv("input_data/countries_codes_and_coordinates.csv")
 worldcountry = geojson_read("input_data/50m.geojson", what = "sp")
@@ -33,11 +59,10 @@ colnames(co2)
 co2_map <- co2 %>%
     select(Year, country, co2, co2_per_capita, cumulative_co2)
 
-# co2 - per capita 
-co2_map
 
 # merge countries
 co2_map <- merge(co2_map, countries, by = "country")
+
 
 # select large countries for mapping polygons
 co2_large_countries = co2_map %>% filter(alpha3 %in% worldcountry$ADM0_A3)
@@ -47,6 +72,9 @@ co2_large_countries = co2_large_countries[order(co2_large_countries$alpha3),]
 # create plotting parameters for map
 bins = c(0,10,50,100,500,1000,Inf)
 co2_pal <- colorBin("Greens", domain = co2_large_countries$cases_per_million, bins = bins)
+
+#World subset
+co2_world <- co2 %>% filter(country=='World')
 
 
 # ====== Map Plotting ==============================
@@ -70,9 +98,10 @@ map_plotting <- function(){
 }
 basemap<- map_plotting()
 
-co2_pal
+co2_text <- expression("CO"[2])
+co2_text
 
-### SHINY UI ###
+a# =========SHINY UI =====================
 ui <- bootstrapPage(
   tags$head(includeHTML("gtag.html")),
   navbarPage(theme = shinytheme("flatly"), collapsible = TRUE,
@@ -88,13 +117,12 @@ ui <- bootstrapPage(
                           absolutePanel(id = "controls", class = "panel panel-default",
                                         top = 75, left = 55, width = 250, fixed=TRUE,
                                         draggable = TRUE, height = "auto",
-                                        
-                                        span(tags$i(h6("CO2 for Countries")), style="color:#045a8d"),
-                                        h3(textOutput("reactive_case_count"), align = "right"),
-                                        h4(textOutput("reactive_death_count"), align = "right"),
-                                        h6(textOutput("clean_date_reactive"), align = "right"),
+                                        span(tags$i(h6("Global CO2 Emission")), style="color:#045a8d"),
+                                        h5(textOutput("reactive_co2"), align = "left"),
+                                        h5(textOutput("reactive_co2_cumulative"), align = "left"),
+                                        h6(textOutput("clean_date_reactive"), align = "center"),
                                         h6(textOutput("reactive_country_count"), align = "right"),
-                                        plotOutput("epi_curve", height="130px", width="100%"),
+                                        plotOutput("yearly_plot", height="130px", width="100%"),
                                         plotOutput("cumulative_plot", height="130px", width="100%"),
                                         
                                         sliderTextInput("plot_date",
@@ -104,8 +132,6 @@ ui <- bootstrapPage(
                                                         grid = FALSE,
                                                         animate=animationOptions(interval = 3000, loop = FALSE)
                                                         )
-                                                        # min = min(co2_map$Year),
-                                                        # max = max(co2_map$Year)
                       )
              )
   )
@@ -128,6 +154,10 @@ server = function(input, output, session) {
     co2_map %>% filter(Year == formatted_date())
   })
   
+  reactive_db_world = reactive({
+    co2 %>% filter(Year == formatted_date(), country=='World')
+  })
+  
   
   reactive_db_large = reactive({
     large_countries = reactive_db() %>% filter(alpha3 %in% worldcountry$ADM0_A3)
@@ -141,10 +171,14 @@ server = function(input, output, session) {
     worldcountry[worldcountry$ADM0_A3 %in% reactive_db_large()$alpha3, ]
   })
 
-  output$reactive_case_count <- renderText({
-    paste0(prettyNum(sum(reactive_db()$cases), big.mark=","), " MT CO2-eq")
+  output$reactive_co2 <- renderText({
+    paste0(paste("Yearly: ", prettyNum(reactive_db_world()$co2, big.mark=","), sep = '\n'), " MT")
   })
-  
+
+  output$reactive_co2_cumulative <- renderText({
+    paste0(paste("Cumulative: ", prettyNum(reactive_db_world()$cumulative_co2, big.mark=","), sep='\n'), " MT")
+  })
+
 
   output$mymap <- renderLeaflet({ 
     basemap
@@ -189,13 +223,26 @@ server = function(input, output, session) {
                 fillOpacity = 0.15,
                 fillColor = ~co2_pal(reactive_db_large()$cumulative_co2)
                 )
-      
-    
-  }
-  )
-  }
-
+  })
+  
+  output$cumulative_plot <- renderPlot({
+    cumulative_plot(co2_world, formatted_date())
+  })
+  
+  output$yearly_plot <- renderPlot({
+    yearly_plot(co2_world, formatted_date())
+  })
+  
+}
 
 shinyApp(ui, server)
+# z
+# paste0(prettyNum(z$co2, big.mark=","), " MT CO2-eq")
 
-# countries %>% filter(country=='USA')
+# z <- filter(co2_world, Year==2019)
+# z <- paste0(prettyNum(z, co2$cumulative_co2, big.mark=","), " MT CO2-eq")
+# z
+# 
+# print("hi \n hi")
+# cat('hi', 'la', sep ="\n")
+# paste(name,  address, cityState, sep="\n")
