@@ -48,6 +48,8 @@ worldcountry = geojson_read("input_data/50m.geojson", what = "sp")
 country_geoms = read.csv("input_data/country_geoms.csv")
 cv_states = read.csv("input_data/coronavirus_states.csv")
 
+
+
 # import and process data for dashboard (YJ)----------------------------------------------------------------------
 co2<-read.csv("co2.csv")
 con_pro<-read.csv('con_pro.csv')
@@ -101,20 +103,8 @@ sars_cumulative_plot = function(sars_aggregated, sars_date) {
           plot.margin = margin(5, 5, 5, 5))
 }
 
-# function to plot new cases by date
-sars_new_cases_plot = function(sars_aggregated, plot_date) {
-  plot_df_new = subset(sars_aggregated, date<=plot_date)
-  ggplot(plot_df_new, aes(x = date, y = new)) + 
-    geom_bar(position="stack", stat="identity", fill = sars_col) + 
-    ylab("New cases") +  xlab("Date") + theme_bw() + ylim(0,2000) + 
-    scale_fill_manual(values=c(sars_col)) +
-    xlim(c(sars_min_date,sars_max_date)) + scale_x_date(date_labels = "%b", limits=c(sars_min_date,sars_max_date)) +
-    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10), 
-          plot.margin = margin(5, 5, 5, 5))
-}
 
-
-### DATA PROCESSING: COVID-19 ###
+### DATA PROCESSING: 
 
 # extract time stamp from cv_cases
 update = tail(cv_cases$last_update,1) 
@@ -168,10 +158,10 @@ cv_states_today = subset(cv_states, date==max(cv_states$date))
 cv_today_reduced = subset(cv_today, cases>=1000)
 
 # write current day's data
-write.csv(cv_today %>% select(c(country, date, update, cases, new_cases, deaths, new_deaths,
-                                cases_per_million, new_cases_per_million,
-                                deaths_per_million, new_deaths_per_million,
-                                weeks_since_case100, weeks_since_death10)), "input_data/coronavirus_today.csv")
+# write.csv(cv_today %>% select(c(country, date, update, cases, new_cases, deaths, new_deaths,
+#                                 cases_per_million, new_cases_per_million,
+#                                 deaths_per_million, new_deaths_per_million,
+#                                 weeks_since_case100, weeks_since_death10)), "input_data/coronavirus_today.csv")
 
 # aggregate at continent level
 cv_cases_continent = subset(cv_cases, !is.na(continent_level)) %>% select(c(cases, new_cases, deaths, new_deaths, date, continent_level)) %>% group_by(continent_level, date) %>% summarise_each(funs(sum)) %>% data.frame()
@@ -226,6 +216,9 @@ bins = c(0,10,50,100,500,1000,Inf)
 cv_pal <- colorBin("Greens", domain = cv_large_countries$cases_per_million, bins = bins)
 plot_map <- worldcountry[worldcountry$ADM0_A3 %in% cv_large_countries$alpha3, ]
 
+head(plot_map)
+class(plot_map)
+
 # creat cv base map 
 basemap = leaflet(plot_map) %>% 
   addTiles() %>% 
@@ -238,6 +231,8 @@ basemap = leaflet(plot_map) %>%
   fitBounds(~-100,-60,~60,70) %>%
   addLegend("bottomright", pal = cv_pal, values = ~cv_large_countries$deaths_per_million,
             title = "<small>CO2 per capita</small>") 
+
+basemap
 
 # sum cv case counts by date
 cv_aggregated = aggregate(cv_cases$cases, by=list(Category=cv_cases$date), FUN=sum)
@@ -414,7 +409,16 @@ server = function(input, output, session) {
       
       addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(cases)^(1/5.5), 
                        fillOpacity = 0.1, color = covid_col, group = "CO2 (Cumulative)",
-                       label = sprintf("<strong>%s (cumulative)</strong><br/>Confirmed cases: %g<br/>Deaths: %d<br/>Cases per million: %g<br/>Deaths per million: %g", reactive_db()$country, reactive_db()$cases, reactive_db()$deaths, reactive_db()$cases_per_million, reactive_db()$deaths_per_million) %>% lapply(htmltools::HTML),
+                       label = sprintf("<strong>%s (cumulative)</strong><br/>
+                                       Confirmed cases: %g<br/>Deaths: %d<br/>
+                                       Cases per million: %g<br/>
+                                       Deaths per million: %g",
+                                       reactive_db()$country,
+                                       reactive_db()$cases,
+                                       reactive_db()$deaths, 
+                                       reactive_db()$cases_per_million,
+                                       reactive_db()$deaths_per_million) %>% 
+                         lapply(htmltools::HTML),
                        labelOptions = labelOptions(
                          style = list("font-weight" = "normal", padding = "3px 8px", "color" = covid_col),
                          textsize = "15px", direction = "auto")) %>%  
@@ -499,29 +503,29 @@ server = function(input, output, session) {
     country_cases_cumulative_log(country_reactive_db(), start_point=input$start_date, input$minimum_date)
   })
   
-  # output to download data
-  output$downloadCsv <- downloadHandler(
-    filename = function() {
-      paste("COVID_data_", cv_today$date[1], ".csv", sep="")
-    },
-    content = function(file) {
-      cv_cases_sub = cv_cases %>% select(c(country, date, cases, new_cases, deaths, new_deaths,
-                                           cases_per_million, new_cases_per_million, deaths_per_million, new_deaths_per_million))
-      names(cv_cases_sub) = c("country", "date", "cumulative_cases", "new_cases_past_week", "cumulative_deaths", "new_deaths_past_week",
-                              "cumulative_cases_per_million", "new_cases_per_million_past_week", "cumulative_deaths_per_million", "new_deaths_per_million_past_week")
-      write.csv(cv_cases_sub, file)
-    }
-  )
-  
-  output$rawtable <- renderPrint({
-    cv_cases_sub = cv_cases %>% select(c(country, date, cases, new_cases, deaths, new_deaths,
-                                         cases_per_million, new_cases_per_million, deaths_per_million, new_deaths_per_million))
-    names(cv_cases_sub) = c("country", "date", "cumulative_cases", "new_cases_past_week", "cumulative_deaths", "new_deaths_past_week",
-                            "cumulative_cases_per_million", "new_cases_per_million_past_week", "cumulative_deaths_per_million", "new_deaths_per_million_past_week")
-    orig <- options(width = 1000)
-    print(tail(cv_cases_sub, input$maxrows), row.names = FALSE)
-    options(orig)
-  })
+  # # output to download data
+  # output$downloadCsv <- downloadHandler(
+  #   filename = function() {
+  #     paste("COVID_data_", cv_today$date[1], ".csv", sep="")
+  #   },
+  #   content = function(file) {
+  #     cv_cases_sub = cv_cases %>% select(c(country, date, cases, new_cases, deaths, new_deaths,
+  #                                          cases_per_million, new_cases_per_million, deaths_per_million, new_deaths_per_million))
+  #     names(cv_cases_sub) = c("country", "date", "cumulative_cases", "new_cases_past_week", "cumulative_deaths", "new_deaths_past_week",
+  #                             "cumulative_cases_per_million", "new_cases_per_million_past_week", "cumulative_deaths_per_million", "new_deaths_per_million_past_week")
+  #     write.csv(cv_cases_sub, file)
+  #   }
+  # )
+  # 
+  # output$rawtable <- renderPrint({
+  #   cv_cases_sub = cv_cases %>% select(c(country, date, cases, new_cases, deaths, new_deaths,
+  #                                        cases_per_million, new_cases_per_million, deaths_per_million, new_deaths_per_million))
+  #   names(cv_cases_sub) = c("country", "date", "cumulative_cases", "new_cases_past_week", "cumulative_deaths", "new_deaths_past_week",
+  #                           "cumulative_cases_per_million", "new_cases_per_million_past_week", "cumulative_deaths_per_million", "new_deaths_per_million_past_week")
+  #   orig <- options(width = 1000)
+  #   print(tail(cv_cases_sub, input$maxrows), row.names = FALSE)
+  #   options(orig)
+  # })
   
   ## Server for Dashboard (YJ) ---------------------------------------------------------------------------------------
   output$plot <- renderPlotly(

@@ -188,7 +188,7 @@
 183,Lebanon,LB,LBN,422,33.8333,35.8333,1.1,6825000,Lebanon,Global,Asia
 187,Diamond Princess Cruise Ship,NA,NA,NA,34,144,1.1,NA,DiamondPrincess,Global,NA
 184,Tunisia,TN,TUN,788,34,9,1.1,11819000,Tunisia,Global,Africa
-185,Mainland China,CN,CHN,156,35,105,1.1,1439324000,China,Global,Asia
+185,China,CN,CHN,156,35,105,1.1,1439324000,China,Global,Asia
 186,Cyprus,CY,CYP,196,35,33,1.1,1207000,Cyprus,Global,Europe
 188,Syria,SY,SYR,760,35,38,1.1,17501000,Syria,Global,Asia
 189,Malta,MT,MLT,470,35.8333,14.5833,1.1,442000,Malta,Global,Europe
@@ -196,7 +196,7 @@
 191,Gibraltar,GI,GIB,292,36.1833,-5.3667,1.1,34000,Gibraltar,Global,Europe
 192,"Korea, Republic of",KR,KOR,410,37,127.5,1.1,51269000,"Korea,Republicof",Global,Asia
 193,Republic of Korea,KR,KOR,410,37,127.5,1.1,51269000,RepublicofKorea,Global,Asia
-194,USA,US,USA,840,38,-97,1.1,331003000,US,Global,North America
+194,United States,US,United States,840,38,-97,1.1,331003000,US,Global,North America
 195,Greece,GR,GRC,300,39,22,1.1,10423000,Greece,Global,Europe
 196,Tajikistan,TJ,TJK,762,39,71,1.1,9538000,Tajikistan,Global,Asia
 197,Turkey,TR,TUR,792,39,35,1.1,84339000,Turkey,Global,Asia
