@@ -16,6 +16,7 @@ intersect_country<-intersect(unique(co2$country),unique(con_pro$Country))
 
 co2_yearly_col <- "#014419"
 co2_cumulative_col <- "#011f44"
+co2_percapita_col <- "#eb3443"
 
 ## --- new
 
@@ -49,11 +50,6 @@ countries = read.csv("input_data/countries_codes_and_coordinates.csv")
 worldcountry = geojson_read("input_data/50m.geojson", what = "sp")
 current_year <- max(co2$Year) 
 
-  
-# country_geoms = read.csv("input_data/country_geoms.csv") # pending
-
-# for CO2 absolute only
-colnames(co2)
 
 # co2 absolute, co2 per capita, co2 cumulative 
 co2_map <- co2 %>%
@@ -71,7 +67,16 @@ co2_large_countries = co2_large_countries[order(co2_large_countries$alpha3),]
 
 # create plotting parameters for map
 bins = c(0,10,50,100,500,1000,Inf)
-co2_pal <- colorBin("Greens", domain = co2_large_countries$cases_per_million, bins = bins)
+co2_pal <- colorBin("Greens", domain=co2_large_countries$co2, bins = bins)
+
+#World subset
+co2_world <- co2 %>% filter(country=='World')
+
+#World subset
+co2_world <- co2 %>% filter(country=='World')
+
+#World subset
+co2_world <- co2 %>% filter(country=='World')
 
 #World subset
 co2_world <- co2 %>% filter(country=='World')
@@ -87,28 +92,41 @@ map_plotting <- function(){
     addTiles() %>% 
     addLayersControl(
       position = "bottomright",
-      overlayGroups = c("CO2 (Yearly)", "CO2 per Capita", "CO2 (Cumulative)"), 
+      overlayGroups = c("CO2 (Yearly)", "CO2 (Cumulative)"), 
       options = layersControlOptions(collapsed = FALSE)) %>% 
-    hideGroup(c("CO2 (Cumulative)", "CO2 per Capita")) %>% 
+    hideGroup(c("CO2 (Cumulative)")) %>% 
     addProviderTiles(providers$CartoDB.Positron) %>%
     fitBounds(~-100,-60,~60,70) %>%
-    addLegend("bottomright", pal = co2_pal, values = ~co2_large_countries$deaths_per_million,
-              title = "<small>CO2 per capita</small>") 
+    addLegend("bottomright", pal = co2_pal, values = ~co2_large_countries$co2,
+              title = "<small>CO2 Production</small>") 
   return(basemap)
 }
 basemap<- map_plotting()
 
+
+# =========SHINY UI =====================
 co2_text <- expression("CO"[2])
 co2_text
 
-a# =========SHINY UI =====================
+# =========SHINY UI =====================
+
+co2_text <- expression("CO"[2])
+co2_text
+
+# =========SHINY UI =====================
+
+co2_text <- expression("CO"[2])
+co2_text
+
+# =========SHINY UI =====================
+
 ui <- bootstrapPage(
   tags$head(includeHTML("gtag.html")),
   navbarPage(theme = shinytheme("flatly"), collapsible = TRUE,
              HTML('<a style="text-decoration:none;cursor:default;color:#FFFFFF;"
                   class="active" href="#">CO2 Tracker</a>'), id="nav",
              windowTitle = "CO2 TRACKER",
-    # tab
+            # tab
              tabPanel("CO2 World",
                       div(class="outer",
                           tags$head(includeCSS("styles.css")),
@@ -118,9 +136,23 @@ ui <- bootstrapPage(
                                         top = 75, left = 55, width = 250, fixed=TRUE,
                                         draggable = TRUE, height = "auto",
                                         span(tags$i(h6("Global CO2 Emission")), style="color:#045a8d"),
+
+                                        h6(textOutput("reactive_co2"), align = "left"),
+                                        h6(textOutput("reactive_co2_cumulative"), align = "left"),
+                                        h6(strong(textOutput("clean_date_reactive"), align = "center")),
+
                                         h5(textOutput("reactive_co2"), align = "left"),
                                         h5(textOutput("reactive_co2_cumulative"), align = "left"),
                                         h6(textOutput("clean_date_reactive"), align = "center"),
+
+                                        h5(textOutput("reactive_co2"), align = "left"),
+                                        h5(textOutput("reactive_co2_cumulative"), align = "left"),
+                                        h6(textOutput("clean_date_reactive"), align = "center"),
+
+                                        h5(textOutput("reactive_co2"), align = "left"),
+                                        h5(textOutput("reactive_co2_cumulative"), align = "left"),
+                                        h6(textOutput("clean_date_reactive"), align = "center"),
+
                                         h6(textOutput("reactive_country_count"), align = "right"),
                                         plotOutput("yearly_plot", height="130px", width="100%"),
                                         plotOutput("cumulative_plot", height="130px", width="100%"),
@@ -173,12 +205,24 @@ server = function(input, output, session) {
 
   output$reactive_co2 <- renderText({
     paste0(paste("Yearly: ", prettyNum(reactive_db_world()$co2, big.mark=","), sep = '\n'), " MT")
+
   })
 
   output$reactive_co2_cumulative <- renderText({
     paste0(paste("Cumulative: ", prettyNum(reactive_db_world()$cumulative_co2, big.mark=","), sep='\n'), " MT")
   })
 
+  })
+
+  output$reactive_co2_cumulative <- renderText({
+    paste0(paste("Cumulative: ", prettyNum(reactive_db_world()$cumulative_co2, big.mark=","), sep='\n'), " MT")
+  })
+
+  })
+
+  output$reactive_co2_cumulative <- renderText({
+    paste0(paste("Cumulative: ", prettyNum(reactive_db_world()$cumulative_co2, big.mark=","), sep='\n'), " MT")
+  })
 
   output$mymap <- renderLeaflet({ 
     basemap
@@ -189,33 +233,46 @@ server = function(input, output, session) {
       clearMarkers() %>%
       clearShapes() %>%
 
+    # Yearly
+     addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(co2)^(1/2.5),
+                      fillOpacity = 0.1, color = co2_yearly_col, group = "CO2 (Yearly)", 
+                      label = sprintf(
+                      "<strong> %s (MT)</strong><br/>
+                                       CO2: %g<br/>
+                                       CO2 per capita: %g<br/>",
+                      reactive_db()$country,
+                      reactive_db()$co2,
+                      reactive_db()$co2_per_capita) %>%
+                        lapply(htmltools::HTML),
+                      labelOptions = labelOptions(
+                        style = list("font-weight" = "normal",
+                                     padding = "3px 8px",
+                                     "color" = co2_yearly_col),
+                        textsize = "15px",
+                        direction = "auto",
+                                                
+                                    )
+      ) %>%
+      
       # Cumulative
       addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(cumulative_co2)^(1/4),
-                       fillOpacity = 0.2, color = co2_cumulative_col, group = "CO2 (Cumulative)") %>%
-                       # label = sprintf(
-                       #   "<strong> %s (Cumulative)</strong><br/>
-                       #                 CO2 Cumulative: %s <br/>",
-                       #                 reactive_db()$country,
-                       #                 reactive_db()$co2 %>%
-                       #                      lapply(htmltools::HTML),
-                       #                         labelOptions = labelOptions(
-                       #                           style = list("font-weight" = "normal",
-                       #                                        padding = "3px 8px",
-                       #                                        "color" = covid_col),
-                       #                           textsize = "15px",
-                       #                           direction = "auto",
-                       #                           )
-                       #                         )
-
-    # Yearly
-     addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(co2)^(1/2),
-                      fillOpacity = 0.1, color = co2_yearly_col, group = "CO2 (Yearly)"
+                       fillOpacity = 0.2, color = co2_cumulative_col, group = "CO2 (Cumulative)",
+                       label = sprintf(
+                         "<strong> %s (MT)</strong><br/>
+                                       CO2 Cumulative: %s <br/>",
+                         reactive_db()$country,
+                         reactive_db()$cumulative_co2) %>%
+                         lapply(htmltools::HTML),
+                       labelOptions = labelOptions(
+                         style = list("font-weight" = "normal",
+                                      padding = "3px 8px",
+                                      "color" = co2_cumulative_col),
+                         textsize = "15px",
+                         direction = "auto",
+                         
+                       )
       ) %>%
-    
-    # CO2_capita
-    addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(co2_per_capita)^(1),
-                     fillOpacity = 0.1, color = co2_yearly_col, group = "CO2 per Capita"
-    ) %>%
+
     
     addPolygons(data = reactive_polygons(),
                 stroke = FALSE,
@@ -237,12 +294,18 @@ server = function(input, output, session) {
 
 shinyApp(ui, server)
 # z
-# paste0(prettyNum(z$co2, big.mark=","), " MT CO2-eq")
 
-# z <- filter(co2_world, Year==2019)
-# z <- paste0(prettyNum(z, co2$cumulative_co2, big.mark=","), " MT CO2-eq")
-# z
+# # paste0(prettyNum(z$co2, big.mark=","), " MT CO2-eq")
 # 
-# print("hi \n hi")
-# cat('hi', 'la', sep ="\n")
-# paste(name,  address, cityState, sep="\n")
+# z <- filter(co2_world, Year==2019)
+# # z <- paste0(prettyNum(z, co2$cumulative_co2, big.mark=","), " MT CO2-eq")c
+# co2_map %>% filter(Year==1900)
+# 
+# # 
+# # print("hi \n hi")
+# # cat('hi', 'la', sep ="\n")
+# # paste(name,  address, cityState, sep="\n")
+# 
+# sort(unique(co2$Year))
+
+
