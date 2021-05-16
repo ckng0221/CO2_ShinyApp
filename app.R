@@ -160,21 +160,30 @@ ui <- bootstrapPage(
                       titlePanel(""),
                       sidebarLayout(
                         position = "left",
-                        sidebarPanel(h3("Select country"), 
-                                     pickerInput("country", "", choices = unique(intersect_country) ,selected = "Malaysia"),
-                                     h5(""),
-                                     htmlOutput("selected_var"),
-                                     br(),
-                                     h6("PROPORTION OF CO2 EMISSION SOURCES IN 2019"),
-                                     plotlyOutput('pie')
-                                     ),
+                        sidebarPanel(
+                          pickerInput("country", "Select country:", choices = unique(intersect_country) ,selected = "Malaysia"),
+                          sliderInput("minimum_year",
+                                      "Minimum year:",
+                                      min = 1970,
+                                      max = 2015,
+                                      value=1970),
+                          htmlOutput("selected_var"),
+                          br(),
+                          h6("PROPORTION OF CO2 EMISSION SOURCES IN 2019"),
+                          plotlyOutput('pie')
+                        ),
                         
                         mainPanel(
-                          h6("PRIMARY SOURCES OF CO2 EMISSION PER CAPITA"),
-                          plotlyOutput("plot"),
-                          h6("TYPE OF CO2 EMISSION"),
-                          plotlyOutput('percountry')
-                          
+                          tabsetPanel(
+                            tabPanel("Sources of Emission", 
+                                     h6("PRIMARY SOURCES OF CO2 EMISSION PER CAPITA"),
+                                     plotlyOutput("plot")),
+                            tabPanel("Type of Emission", 
+                                     h6("TYPE OF CO2 EMISSION"),
+                                     plotlyOutput('percountry'))
+                            
+                            
+                          )
                         )
                       )
              ),
@@ -299,16 +308,15 @@ server = function(input, output, session) {
   
   ## Server for Dashboard (YJ) ---------------------------------------------------------------------------------------
   output$plot <- renderPlotly(
-    data_long %>% filter(country == input$country) %>% 
+    data_long[which(data_long$Year>=input$minimum_year),] %>% filter(country == input$country) %>% 
+      
       ggplot(aes(x=Year, y=emission_per_capita, fill=reorder(sources, -emission_per_capita))) +
       ylab(label = 'CO2 Emission per capita (tonnes)') +
       geom_area()+
       labs(fill = "Sources") +
-      theme   (axis.text.x        = element_text(size = 12),
-               panel.background   = element_rect(fill='white'),
-               panel.grid.major.y = element_line(color = 'grey'),
-               panel.grid.minor.y = element_line(color = 'grey'),
-               panel.grid.major.x = element_line(color = 'grey90'))
+      theme_bw() + 
+      theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10))
+    
   )
   
   # output$pie <- renderPlot(
@@ -331,24 +339,22 @@ server = function(input, output, session) {
              yaxis = list(showgrid = FALSE, zeroline = TRUE, showticklabels = TRUE))
   )
   
-    output$percountry = renderPlotly(
+  output$percountry = renderPlotly(
     
     con_pro %>%
       filter(Country == input$country, Record %in% c('CBA_GgCO2', 'PBA_GgCO2')) %>%
       gather(key = 'Year', value = 'Emission', -c(1:2)) %>%
       mutate(Year = as.numeric(substr(Year, 2, 5))) %>%
       mutate(Emission=as.numeric(Emission))%>%
+      filter(Year>input$minimum_year) %>%
       mutate(Record = ifelse(Record == 'CBA_GgCO2', 'Consumption', 'Production')) %>%
       
       ggplot(aes(x = Year, y = Emission, color = Record)) +
       geom_line(size = 2) +
       ylab(label = 'CO2 Emission (GgCO2)') +
       scale_color_discrete(name = 'Emission Type') +
-      theme   (axis.text.x        = element_text(size = 12),
-               panel.background   = element_rect(fill='white'),
-               panel.grid.major.y = element_line(color = 'grey'),
-               panel.grid.minor.y = element_line(color = 'grey'),
-               panel.grid.major.x = element_line(color = 'grey90'))
+      theme_bw() + 
+      theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10))
     
   )
   
