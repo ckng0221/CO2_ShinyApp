@@ -346,7 +346,11 @@ shinyApp(ui, server)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+cv_aggregated
+>>>>>>> cee5b1e517047f0dc169d243fcde514a0ad4e451
 =======
 cv_aggregated
 >>>>>>> cee5b1e517047f0dc169d243fcde514a0ad4e451
