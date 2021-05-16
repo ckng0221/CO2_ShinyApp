@@ -66,6 +66,30 @@ co2_world <- co2 %>% filter(country=='World')
 
 
 #===== Ploting Functions ========
+# Cumulative plot
+cumulative_plot = function(df, plot_date) {
+  plot_df = subset(df, Year<=plot_date)
+  g1 = ggplot(plot_df, aes(x = Year, y = cumulative_co2, color='Global')) + geom_line() + geom_point(size = 1, alpha = 0.8) +
+    ylab("CO2 (Cumulative)") +  xlab("Date") + theme_bw() + 
+    scale_colour_manual(values=c(co2_yearly_col)) +
+    scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
+    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10), 
+          plot.margin = margin(5, 12, 5, 5))
+  g1
+}
+
+# Yearly plot
+yearly_plot = function(df, plot_date) {
+  plot_df = subset(df, Year<=plot_date)
+  g1 = ggplot(plot_df, aes(x = Year, y = co2, color='Global')) + geom_line() + geom_point(size = 1, alpha = 0.8) +
+    ylab("CO2 (Yearly)") +  xlab("Date") + theme_bw() + 
+    scale_colour_manual(values=c(co2_yearly_col)) +
+    scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
+    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10), 
+          plot.margin = margin(5, 12, 5, 5))
+  g1
+}
+
 # ====== Map Plotting ==============================
 map_plotting <- function(){
   plot_map <- worldcountry[worldcountry$ADM0_A3 %in% co2_large_countries$alpha3, ]
