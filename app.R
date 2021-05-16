@@ -1,15 +1,3 @@
-## COVID-2019 interactive mapping tool
-## Edward Parker, London School of Hygiene & Tropical Medicine (edward.parker@lshtm.ac.uk), last updated April 2020
-
-## includes code adapted from the following sources:
-# https://github.com/rstudio/shiny-examples/blob/master/087-crandash/
-# https://rviews.rstudio.com/2019/10/09/building-interactive-world-maps-in-shiny/
-# https://github.com/rstudio/shiny-examples/tree/master/063-superzip-example
-
-# update data with automated script
-#source("jhu_data_daily_cases.R") # option to update daily cases
-# source("jhu_data_weekly_cases.R") # run locally to update numbers, but not live on Rstudio server /Users/epp11/Dropbox (VERG)/GitHub/nCoV_tracker/app.R(to avoid possible errors on auto-updates)
-# source("ny_data_us.R") # run locally to update numbers, but not live on Rstudio server (to avoid possible errors on auto-updates)
 
 # load required packages
 if(!require(magrittr)) install.packages("magrittr", repos = "http://cran.us.r-project.org")
@@ -32,22 +20,9 @@ if(!require(tidyr)) install.packages("tidyr", repos = "http://cran.us.r-project.
 if(!require(scales)) install.packages("scales", repos = "http://cran.us.r-project.org")
 
 # set mapping colour for each outbreak
-covid_col = "#014419"
-# covid_other_col = "#662506"
-# sars_col = "#045a8d"
-# h1n1_col = "#4d004b"
-# ebola_col = "#016c59"
-
-# import data
-cv_cases = read.csv("input_data/coronavirus.csv")
-sars_cases = read.csv("input_data/sars.csv")
-countries = read.csv("input_data/countries_codes_and_coordinates.csv")
-ebola_cases = read.csv("input_data/ebola.csv")
-h1n1_cases = read.csv("input_data/h1n1.csv")
-worldcountry = geojson_read("input_data/50m.geojson", what = "sp")
-country_geoms = read.csv("input_data/country_geoms.csv")
-cv_states = read.csv("input_data/coronavirus_states.csv")
-
+co2_yearly_col <- "#014419"
+co2_cumulative_col <- "#011f44"
+co2_percapita_col <- "#eb3443"
 
 
 # import and process data for dashboard (YJ)----------------------------------------------------------------------
@@ -64,207 +39,63 @@ data2_long<- gather(data_long, emission_type, annual_emission, co2, consumption_
 intersect_country<-intersect(unique(co2$country),unique(con_pro$Country))
 
 
+# ==== Read countries map (CK) ==========
+# Read for countries 
+countries = read.csv("input_data/countries_codes_and_coordinates.csv")
+worldcountry = geojson_read("input_data/50m.geojson", what = "sp")
+current_year <- max(co2$Year) 
 
-### MAP FUNCTIONS ###
-# function to plot cumulative COVID cases by date
-cumulative_plot = function(cv_aggregated, plot_date) {
-  plot_df = subset(cv_aggregated, date<=plot_date)
-  g1 = ggplot(plot_df, aes(x = date, y = cases, color = region)) + geom_line() + geom_point(size = 1, alpha = 0.8) +
-    ylab("CO2 (Cumulative)") +  xlab("Date") + theme_bw() + 
-    scale_colour_manual(values=c(covid_col)) +
-    scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
-    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10), 
-          plot.margin = margin(5, 12, 5, 5))
-  g1
-}
+# co2 absolute, co2 per capita, co2 cumulative 
+co2_map <- co2 %>%
+  select(Year, country, co2, co2_per_capita, cumulative_co2)
 
-# function to plot new COVID cases by date
-new_cases_plot = function(cv_aggregated, plot_date) {
-  plot_df_new = subset(cv_aggregated, date<=plot_date)
-  g1 = ggplot(plot_df_new, aes(x = date, y = new, colour = region)) + geom_line() + geom_point(size = 1, alpha = 0.8) +
-    # geom_bar(position="stack", stat="identity") + 
-    ylab("CO2 (Yearly)") + xlab("Date") + theme_bw() + 
-    scale_colour_manual(values=c(covid_col)) +
-    scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
-    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10), 
-          plot.margin = margin(5, 12, 5, 5))
-  g1
-}
-
-
-# function to plot cumulative sars cases by date
-sars_cumulative_plot = function(sars_aggregated, sars_date) {
-  plot_df = subset(sars_aggregated, date<=as.Date(sars_date, format="%Y-%m-%d"))
-  ggplot(plot_df, aes(x = date, y = cases)) + geom_line(colour = sars_col) + geom_point(size = 1, alpha = 0.8, colour = sars_col) +
-    ylab("Cumulative cases") + xlab("Date") + theme_bw() + 
-    scale_colour_manual(values=c(sars_col)) + scale_x_date(date_labels = "%b", limits=c(sars_min_date,sars_max_date)) +
-    scale_y_continuous(limits=c(0,10000), labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
-    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10), 
-          plot.margin = margin(5, 5, 5, 5))
-}
-
-
-### DATA PROCESSING: 
-
-# extract time stamp from cv_cases
-update = tail(cv_cases$last_update,1) 
-
-# check consistency of country names across datasets
-if (all(unique(cv_cases$country) %in% unique(countries$country))==FALSE) { print("Error: inconsistent country names")}
-
-# extract dates from cv data
-if (any(grepl("/", cv_cases$date))) { 
-  cv_cases$date = format(as.Date(cv_cases$date, format="%d/%m/%Y"),"%Y-%m-%d") 
-} else { cv_cases$date = as.Date(cv_cases$date, format="%Y-%m-%d") }
-cv_cases$date = as.Date(cv_cases$date)
-cv_min_date = as.Date(min(cv_cases$date),"%Y-%m-%d")
-current_date = as.Date(max(cv_cases$date),"%Y-%m-%d")
-cv_max_date_clean = format(as.POSIXct(current_date),"%d %B %Y")
-
-# merge cv data with country data and extract key summary variables
-cv_cases = merge(cv_cases, countries, by = "country")
-cv_cases = cv_cases[order(cv_cases$date),]
-cv_cases$cases_per_million = as.numeric(format(round(cv_cases$cases/(cv_cases$population/1000000),1),nsmall=1))
-cv_cases$new_cases_per_million = as.numeric(format(round(cv_cases$new_cases/(cv_cases$population/1000000),1),nsmall=1))
-cv_cases$million_pop = as.numeric(cv_cases$population>1e6)
-cv_cases$deaths_per_million = as.numeric(format(round(cv_cases$deaths/(cv_cases$population/1000000),1),nsmall=1))
-cv_cases$new_deaths_per_million = as.numeric(format(round(cv_cases$new_deaths/(cv_cases$population/1000000),1),nsmall=1))
-
-# add variable for weeks since 100th case and 10th death
-cv_cases$weeks_since_case100 = cv_cases$weeks_since_death10 = 0
-for (i in 1:length(unique(cv_cases$country))) {
-  country_name = as.character(unique(cv_cases$country))[i]
-  country_db = subset(cv_cases, country==country_name)
-  country_db$weeks_since_case100[country_db$cases>=100] = 0:(sum(country_db$cases>=100)-1)
-  country_db$weeks_since_death10[country_db$deaths>=10] = 0:(sum(country_db$deaths>=10)-1)
-  cv_cases$weeks_since_case100[cv_cases$country==country_name] = country_db$weeks_since_case100
-  cv_cases$weeks_since_death10[cv_cases$country==country_name] = country_db$weeks_since_death10
-}
-
-# creat variable for today's data
-cv_today = subset(cv_cases, date==current_date) 
-current_case_count = sum(cv_today$cases)
-current_case_count_China = sum(cv_today$cases[cv_today$country=="Mainland China"])
-current_case_count_other = sum(cv_today$cases[cv_today$country!="Mainland China"])
-current_death_count = sum(cv_today$deaths)
-
-# create subset of state data for today's data
-if (any(grepl("/", cv_states$date))) { 
-  cv_states$date = format(as.Date(cv_states$date, format="%d/%m/%Y"),"%Y-%m-%d") 
-} else { cv_states$date = as.Date(cv_states$date, format="%Y-%m-%d") }
-cv_states_today = subset(cv_states, date==max(cv_states$date))
-
-# create subset for countries with at least 1000 cases
-cv_today_reduced = subset(cv_today, cases>=1000)
-
-# write current day's data
-# write.csv(cv_today %>% select(c(country, date, update, cases, new_cases, deaths, new_deaths,
-#                                 cases_per_million, new_cases_per_million,
-#                                 deaths_per_million, new_deaths_per_million,
-#                                 weeks_since_case100, weeks_since_death10)), "input_data/coronavirus_today.csv")
-
-# aggregate at continent level
-cv_cases_continent = subset(cv_cases, !is.na(continent_level)) %>% select(c(cases, new_cases, deaths, new_deaths, date, continent_level)) %>% group_by(continent_level, date) %>% summarise_each(funs(sum)) %>% data.frame()
-
-# add variable for weeks since 100th case and 10th death
-cv_cases_continent$weeks_since_case100 = cv_cases_continent$weeks_since_death10 = 0
-cv_cases_continent$continent = cv_cases_continent$continent_level
-for (i in 1:length(unique(cv_cases_continent$continent))) {
-  continent_name = as.character(unique(cv_cases_continent$continent))[i]
-  continent_db = subset(cv_cases_continent, continent==continent_name)
-  continent_db$weeks_since_case100[continent_db$cases>=100] = 0:(sum(continent_db$cases>=100)-1)
-  continent_db$weeks_since_death10[continent_db$deaths>=10] = 0:(sum(continent_db$deaths>=10)-1)
-  cv_cases_continent$weeks_since_case100[cv_cases_continent$continent==continent_name] = continent_db$weeks_since_case100
-  cv_cases_continent$weeks_since_death10[cv_cases_continent$continent==continent_name] = continent_db$weeks_since_death10
-}
-
-# add continent populations
-cv_cases_continent$pop = NA
-cv_cases_continent$pop[cv_cases_continent$continent=="Africa"] = 1.2e9
-cv_cases_continent$pop[cv_cases_continent$continent=="Asia"] = 4.5e9
-cv_cases_continent$pop[cv_cases_continent$continent=="Europe"] = 7.4e8
-cv_cases_continent$pop[cv_cases_continent$continent=="North America"] = 5.8e8
-cv_cases_continent$pop[cv_cases_continent$continent=="Oceania"] = 3.8e7
-cv_cases_continent$pop[cv_cases_continent$continent=="South America"] = 4.2e8
-
-# add normalised counts
-cv_cases_continent$cases_per_million =  as.numeric(format(round(cv_cases_continent$cases/(cv_cases_continent$pop/1000000),1),nsmall=1))
-cv_cases_continent$new_cases_per_million =  as.numeric(format(round(cv_cases_continent$new_cases/(cv_cases_continent$pop/1000000),1),nsmall=1))
-cv_cases_continent$deaths_per_million =  as.numeric(format(round(cv_cases_continent$deaths/(cv_cases_continent$pop/1000000),1),nsmall=1))
-cv_cases_continent$new_deaths_per_million =  as.numeric(format(round(cv_cases_continent$new_deaths/(cv_cases_continent$pop/1000000),1),nsmall=1))
-write.csv(cv_cases_continent, "input_data/coronavirus_continent.csv")
-
-# aggregate at global level
-cv_cases_global = cv_cases %>% select(c(cases, new_cases, deaths, new_deaths, date, global_level)) %>% group_by(global_level, date) %>% summarise_each(funs(sum)) %>% data.frame()
-cv_cases_global$weeks_since_case100 = cv_cases_global$weeks_since_death10 = 0:(nrow(cv_cases_global)-1)
-
-# add normalised counts
-cv_cases_global$pop = 7.6e9
-cv_cases_global$cases_per_million =  as.numeric(format(round(cv_cases_global$cases/(cv_cases_global$pop/1000000),1),nsmall=1))
-cv_cases_global$new_cases_per_million =  as.numeric(format(round(cv_cases_global$new_cases/(cv_cases_global$pop/1000000),1),nsmall=1))
-cv_cases_global$deaths_per_million =  as.numeric(format(round(cv_cases_global$deaths/(cv_cases_global$pop/1000000),1),nsmall=1))
-cv_cases_global$new_deaths_per_million =  as.numeric(format(round(cv_cases_global$new_deaths/(cv_cases_global$pop/1000000),1),nsmall=1))
-write.csv(cv_cases_global, "input_data/coronavirus_global.csv")
+# merge countries
+co2_map <- merge(co2_map, countries, by = "country")
 
 # select large countries for mapping polygons
-cv_large_countries = cv_today %>% filter(alpha3 %in% worldcountry$ADM0_A3)
-if (all(cv_large_countries$alpha3 %in% worldcountry$ADM0_A3)==FALSE) { print("Error: inconsistent country names")}
-cv_large_countries = cv_large_countries[order(cv_large_countries$alpha3),]
+co2_large_countries = co2_map %>% filter(alpha3 %in% worldcountry$ADM0_A3)
+if (all(co2_large_countries$alpha3 %in% worldcountry$ADM0_A3)==FALSE) { print("Error: inconsistent country names")}
+co2_large_countries = co2_large_countries[order(co2_large_countries$alpha3),]
 
 # create plotting parameters for map
 bins = c(0,10,50,100,500,1000,Inf)
-cv_pal <- colorBin("Greens", domain = cv_large_countries$cases_per_million, bins = bins)
-plot_map <- worldcountry[worldcountry$ADM0_A3 %in% cv_large_countries$alpha3, ]
+co2_pal <- colorBin("Greens", domain=co2_large_countries$co2, bins = bins)
 
-head(plot_map)
-class(plot_map)
+#World subset
+co2_world <- co2 %>% filter(country=='World')
 
-# creat cv base map 
-basemap = leaflet(plot_map) %>% 
-  addTiles() %>% 
-  addLayersControl(
-    position = "bottomright",
-    overlayGroups = c("CO2 (Yearly)", "CO2 (Cumulative)"), # ori: , "2003-SARS", "2009-H1N1 (swine flu)", "2014-Ebola"
-    options = layersControlOptions(collapsed = FALSE)) %>% 
-  hideGroup(c("CO2 (Cumulative)")) %>% #ori , "2003-SARS", "2009-H1N1 (swine flu)", "2014-Ebola
-  addProviderTiles(providers$CartoDB.Positron) %>%
-  fitBounds(~-100,-60,~60,70) %>%
-  addLegend("bottomright", pal = cv_pal, values = ~cv_large_countries$deaths_per_million,
-            title = "<small>CO2 per capita</small>") 
 
-basemap
-
-# sum cv case counts by date
-cv_aggregated = aggregate(cv_cases$cases, by=list(Category=cv_cases$date), FUN=sum)
-names(cv_aggregated) = c("date", "cases")
-
-# add variable for new cases in last 7 days
-for (i in 1:nrow(cv_aggregated)) { 
-  if (i==1) { cv_aggregated$new[i] = 0 }
-  if (i>1) { cv_aggregated$new[i] = cv_aggregated$cases[i] - cv_aggregated$cases[i-1] }
+#===== Ploting Functions ========
+# ====== Map Plotting ==============================
+map_plotting <- function(){
+  plot_map <- worldcountry[worldcountry$ADM0_A3 %in% co2_large_countries$alpha3, ]
+  
+  # create base map 
+  basemap <- leaflet(plot_map) %>% 
+    addTiles() %>% 
+    addLayersControl(
+      position = "bottomright",
+      overlayGroups = c("CO2 (Yearly)", "CO2 (Cumulative)"), 
+      options = layersControlOptions(collapsed = FALSE)) %>% 
+    hideGroup(c("CO2 (Cumulative)")) %>% 
+    addProviderTiles(providers$CartoDB.Positron) %>%
+    fitBounds(~-100,-60,~60,70) %>%
+    addLegend("bottomright", pal = co2_pal, values = ~co2_large_countries$co2,
+              title = "<small>CO2 Production</small>") 
+  return(basemap)
 }
-
-# add plotting region
-cv_aggregated$region = "Global"
-cv_aggregated$date = as.Date(cv_aggregated$date,"%Y-%m-%d")
-
-# assign colours to countries to ensure consistency between plots 
-cls = rep(c(brewer.pal(8,"Dark2"), brewer.pal(10, "Paired"), brewer.pal(12, "Set3"), brewer.pal(8,"Set2"), brewer.pal(9, "Set1"), brewer.pal(8, "Accent"),  brewer.pal(9, "Pastel1"),  brewer.pal(8, "Pastel2")),4)
-cls_names = c(as.character(unique(cv_cases$country)), as.character(unique(cv_cases_continent$continent)), as.character(unique(cv_states$state)),"Global")
-country_cols = cls[1:length(cls_names)]
-names(country_cols) = cls_names
+basemap<- map_plotting()
 
 
-
-
-### SHINY UI ###
+#========== SHINY UI ==========
 ui <- bootstrapPage(
   tags$head(includeHTML("gtag.html")),
   navbarPage(theme = shinytheme("flatly"), collapsible = TRUE,
-             HTML('<a style="text-decoration:none;cursor:default;color:#FFFFFF;" class="active" href="#">CO2 tracker</a>'), id="nav",
+             HTML('<a style="text-decoration:none;cursor:default;color:#FFFFFF;" 
+                  class="active" href="#">CO2 Tracker</a>'), id="nav",
              windowTitle = "CO2 TRACKER",
-             
-             tabPanel("CO2 mapper",
+             # Global Map Tab
+             tabPanel("CO2 World",
                       div(class="outer",
                           tags$head(includeCSS("styles.css")),
                           leafletOutput("mymap", width="100%", height="100%"),
@@ -272,40 +103,35 @@ ui <- bootstrapPage(
                           absolutePanel(id = "controls", class = "panel panel-default",
                                         top = 75, left = 55, width = 250, fixed=TRUE,
                                         draggable = TRUE, height = "auto",
-                                        
-                                        span(tags$i(h6("This is CO2 for Countries")), style="color:#045a8d"),
-                                        h3(textOutput("reactive_case_count"), align = "right"),
-                                        h4(textOutput("reactive_death_count"), align = "right"),
-                                        h6(textOutput("clean_date_reactive"), align = "right"),
+                                        span(tags$i(h6("Global CO2 Emission")), style="color:#045a8d"),
+                                        h6(textOutput("reactive_co2"), align = "left"),
+                                        h6(textOutput("reactive_co2_cumulative"), align = "left"),
+                                        h6(strong(textOutput("clean_date_reactive"), align = "center")),
                                         h6(textOutput("reactive_country_count"), align = "right"),
-                                        plotOutput("epi_curve", height="130px", width="100%"),
+                                        plotOutput("yearly_plot", height="130px", width="100%"),
                                         plotOutput("cumulative_plot", height="130px", width="100%"),
                                         
                                         sliderTextInput("plot_date",
                                                         label = h5("Select mapping date"),
-                                                        choices = format(unique(cv_cases$date), "%d %b %Y"),
-                                                        selected = format(current_date, "%d %b %Y"),
+                                                        choices = sort(unique(co2_map$Year)),
+                                                        selected = current_year,
                                                         grid = FALSE,
-                                                        animate=animationOptions(interval = 3000, loop = FALSE))
-                                        
-                          ),
-                          
-                          
+                                                        animate=animationOptions(interval = 3000, loop = FALSE)
+                                        )
+                          )
                       )
              ),
              
+             # # Data Tab
+             # tabPanel("Data",
+             #          numericInput("maxrows", "Rows to show", 25),
+             #          verbatimTextOutput("rawtable"),
+             #          downloadButton("downloadCsv", "Download as CSV"),tags$br(),tags$br(),
+             #          "Adapted from timeline data published by ", tags$a(href="https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series",
+             #                                                             "Johns Hopkins Center for Systems Science and Engineering.")
+             # ),
              
-             
-             
-             tabPanel("Data",
-                      numericInput("maxrows", "Rows to show", 25),
-                      verbatimTextOutput("rawtable"),
-                      downloadButton("downloadCsv", "Download as CSV"),tags$br(),tags$br(),
-                      "Adapted from timeline data published by ", tags$a(href="https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series",
-                                                                         "Johns Hopkins Center for Systems Science and Engineering.")
-             ),
-             
-             
+             # Dashboard Tab
              tabPanel("Dashboard",
                       titlePanel(""),
                       sidebarLayout(
@@ -342,190 +168,110 @@ ui <- bootstrapPage(
 ### SHINY SERVER ###
 
 server = function(input, output, session) {
-  
-  # covid tab 
+ # ===== Server for Global Map (CK) =======================
+  # CO2 date
   formatted_date = reactive({
-    format(as.Date(input$plot_date, format="%d %b %Y"), "%Y-%m-%d")
+    input$plot_date
   })
   
   output$clean_date_reactive <- renderText({
-    format(as.POSIXct(formatted_date()),"%d %B %Y")
+    formatted_date()
   })
   
   reactive_db = reactive({
-    cv_cases %>% filter(date == formatted_date())
+    co2_map %>% filter(Year == formatted_date())
   })
   
-  reactive_db_last7d = reactive({
-    cv_cases %>% filter(date == formatted_date() & new_cases>0)
-  }) ## !!!! to amend here.
+  reactive_db_world = reactive({
+    co2 %>% filter(Year == formatted_date(), country=='World')
+  })
   
   reactive_db_large = reactive({
     large_countries = reactive_db() %>% filter(alpha3 %in% worldcountry$ADM0_A3)
-    #large_countries = reactive %>% filter(alpha3 %in% worldcountry$ADM0_A3)
     worldcountry_subset = worldcountry[worldcountry$ADM0_A3 %in% large_countries$alpha3, ]
     large_countries = large_countries[match(worldcountry_subset$ADM0_A3, large_countries$alpha3),]
     large_countries
   })
   
-  reactive_db_large_last7d = reactive({
-    large_countries = reactive_db_last7d() %>% filter(alpha3 %in% worldcountry$ADM0_A3)
-    large_countries = large_countries[order(large_countries$alpha3),]
-    large_countries
-  })
   
   reactive_polygons = reactive({
     worldcountry[worldcountry$ADM0_A3 %in% reactive_db_large()$alpha3, ]
   })
   
-  reactive_polygons_last7d = reactive({
-    worldcountry[worldcountry$ADM0_A3 %in% reactive_db_large_last7d()$alpha3, ]
+  output$reactive_co2 <- renderText({
+    paste0(paste("Yearly: ", prettyNum(reactive_db_world()$co2, big.mark=","), sep = '\n'), " MT")
   })
   
-  output$reactive_case_count <- renderText({
-    paste0(prettyNum(sum(reactive_db()$cases), big.mark=","), " MT CO2-eq")
+  output$reactive_co2_cumulative <- renderText({
+    paste0(paste("Cumulative: ", prettyNum(reactive_db_world()$cumulative_co2, big.mark=","), sep='\n'), " MT")
   })
   
-  output$reactive_death_count <- renderText({
-    paste0(prettyNum(sum(reactive_db()$deaths), big.mark=","), " MT CO2-eq")
-  })
-  
-  # output$reactive_country_count <- renderText({
-  #   paste0(nrow(subset(reactive_db(), country!="Diamond Princess Cruise Ship")), " countries/regions affected")
-  # })
-  # 
-  # output$reactive_new_cases_7d <- renderText({
-  #   paste0(round((cv_aggregated %>% filter(date == formatted_date() & region=="Global"))$new/7,0), " 7-day average")
-  # })
   
   output$mymap <- renderLeaflet({ 
     basemap
   })
   
   observeEvent(input$plot_date, {
-    leafletProxy("mymap") %>% 
+    leafletProxy("mymap") %>%
       clearMarkers() %>%
       clearShapes() %>%
       
-      addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(cases)^(1/5.5), 
-                       fillOpacity = 0.1, color = covid_col, group = "CO2 (Cumulative)",
-                       label = sprintf("<strong>%s (cumulative)</strong><br/>
-                                       Confirmed cases: %g<br/>Deaths: %d<br/>
-                                       Cases per million: %g<br/>
-                                       Deaths per million: %g",
-                                       reactive_db()$country,
-                                       reactive_db()$cases,
-                                       reactive_db()$deaths, 
-                                       reactive_db()$cases_per_million,
-                                       reactive_db()$deaths_per_million) %>% 
+      # Yearly
+      addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(co2)^(1/2.5),
+                       fillOpacity = 0.1, color = co2_yearly_col, group = "CO2 (Yearly)", 
+                       label = sprintf(
+                         "<strong> %s (MT)</strong><br/>
+                                       CO2: %g<br/>
+                                       CO2 per capita: %g<br/>",
+                         reactive_db()$country,
+                         reactive_db()$co2,
+                         reactive_db()$co2_per_capita) %>%
                          lapply(htmltools::HTML),
                        labelOptions = labelOptions(
-                         style = list("font-weight" = "normal", padding = "3px 8px", "color" = covid_col),
-                         textsize = "15px", direction = "auto")) %>%  
+                         style = list("font-weight" = "normal",
+                                      padding = "3px 8px",
+                                      "color" = co2_yearly_col),
+                         textsize = "15px",
+                         direction = "auto",
+                         
+                       )
+      ) %>%
       
-      addPolygons(data = reactive_polygons(), stroke = FALSE, smoothFactor = 0.1, fillOpacity = 0.15, fillColor = ~cv_pal(reactive_db_large()$deaths_per_million)) %>%
-      
-      addCircleMarkers(data = reactive_db_last7d(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(new_cases)^(1/5.5), 
-                       fillOpacity = 0.1, color = covid_col, group = "CO2 (Yearly)",
-                       label = sprintf("<strong>%s (Yearly)</strong><br/>CO2 Production: %g<br/>CO2 Consumption: %d<br/>CO2 per capita: %g<br/>CO2 consu per capita: %g", 
-                                       reactive_db_last7d()$country, round(reactive_db_last7d()$new_cases/7,0), round(reactive_db_last7d()$new_deaths/7,0), 
-                                       round(reactive_db_last7d()$new_cases_per_million/7,1),
-                                       round(reactive_db_last7d()$new_deaths_per_million/7,1)) %>% lapply(htmltools::HTML),
+      # Cumulative
+      addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(cumulative_co2)^(1/3),
+                       fillOpacity = 0.2, color = co2_cumulative_col, group = "CO2 (Cumulative)",
+                       label = sprintf(
+                         "<strong> %s (MT)</strong><br/>
+                                       CO2 Cumulative: %s <br/>",
+                         reactive_db()$country,
+                         reactive_db()$cumulative_co2) %>%
+                         lapply(htmltools::HTML),
                        labelOptions = labelOptions(
-                         style = list("font-weight" = "normal", padding = "3px 8px", "color" = covid_col),
-                         textsize = "15px", direction = "auto")) #%>%
-    
+                         style = list("font-weight" = "normal",
+                                      padding = "3px 8px",
+                                      "color" = co2_cumulative_col),
+                         textsize = "15px",
+                         direction = "auto",
+                                                  )
+                    ) %>%
+      
+      
+      addPolygons(data = reactive_polygons(),
+                  stroke = FALSE,
+                  smoothFactor = 0.1,
+                  fillOpacity = 0.15,
+                  fillColor = ~co2_pal(reactive_db_large()$cumulative_co2)
+      )
   })
   
   output$cumulative_plot <- renderPlot({
-    cumulative_plot(cv_aggregated, formatted_date())
+    cumulative_plot(co2_world, formatted_date())
   })
   
-  output$epi_curve <- renderPlot({
-    new_cases_plot(cv_aggregated, formatted_date())
+  output$yearly_plot <- renderPlot({
+    yearly_plot(co2_world, formatted_date())
   })
-  
-
-  # create dataframe with selected countries
-  country_reactive_db = reactive({
-    if (input$level_select=="Global") { 
-      db = cv_cases_global
-      db$region = db$global_level
-    }
-    if (input$level_select=="Continent") { 
-      db = cv_cases_continent 
-      db$region = db$continent
-    }
-    if (input$level_select=="Country") { 
-      db = cv_cases
-      db$region = db$country
-    }
-    if (input$level_select=="US state") { 
-      db = cv_states
-      db$region = db$state
-    }
-    
-    if (input$outcome_select=="Cases (total)") { 
-      db$outcome = db$cases
-      db$new_outcome = db$new_cases
-    }
-    
-    if (input$outcome_select=="Deaths (total)") { 
-      db$outcome = db$deaths 
-      db$new_outcome = db$new_deaths 
-    }
-    
-    if (input$outcome_select=="Cases per million") { 
-      db$outcome = db$cases_per_million 
-      db$new_outcome = db$new_cases_per_million 
-    }
-    
-    if (input$outcome_select=="Deaths per million") { 
-      db$outcome = db$deaths_per_million 
-      db$new_outcome = db$new_deaths_per_million 
-    }
-    
-    db %>% filter(region %in% input$region_select)
-  })
-  
-  # country-specific plots
-  output$country_plot <- renderPlotly({
-    country_cases_plot(country_reactive_db(), start_point=input$start_date, input$minimum_date)
-  })
-  
-  # country-specific plots
-  output$country_plot_cumulative <- renderPlotly({
-    country_cases_cumulative(country_reactive_db(), start_point=input$start_date, input$minimum_date)
-  })
-  
-  # country-specific plots
-  output$country_plot_cumulative_log <- renderPlotly({
-    country_cases_cumulative_log(country_reactive_db(), start_point=input$start_date, input$minimum_date)
-  })
-  
-  # # output to download data
-  # output$downloadCsv <- downloadHandler(
-  #   filename = function() {
-  #     paste("COVID_data_", cv_today$date[1], ".csv", sep="")
-  #   },
-  #   content = function(file) {
-  #     cv_cases_sub = cv_cases %>% select(c(country, date, cases, new_cases, deaths, new_deaths,
-  #                                          cases_per_million, new_cases_per_million, deaths_per_million, new_deaths_per_million))
-  #     names(cv_cases_sub) = c("country", "date", "cumulative_cases", "new_cases_past_week", "cumulative_deaths", "new_deaths_past_week",
-  #                             "cumulative_cases_per_million", "new_cases_per_million_past_week", "cumulative_deaths_per_million", "new_deaths_per_million_past_week")
-  #     write.csv(cv_cases_sub, file)
-  #   }
-  # )
-  # 
-  # output$rawtable <- renderPrint({
-  #   cv_cases_sub = cv_cases %>% select(c(country, date, cases, new_cases, deaths, new_deaths,
-  #                                        cases_per_million, new_cases_per_million, deaths_per_million, new_deaths_per_million))
-  #   names(cv_cases_sub) = c("country", "date", "cumulative_cases", "new_cases_past_week", "cumulative_deaths", "new_deaths_past_week",
-  #                           "cumulative_cases_per_million", "new_cases_per_million_past_week", "cumulative_deaths_per_million", "new_deaths_per_million_past_week")
-  #   orig <- options(width = 1000)
-  #   print(tail(cv_cases_sub, input$maxrows), row.names = FALSE)
-  #   options(orig)
-  # })
+ 
   
   ## Server for Dashboard (YJ) ---------------------------------------------------------------------------------------
   output$plot <- renderPlotly(
@@ -598,3 +344,12 @@ shinyApp(ui, server)
 #library(rsconnect)
 #deployApp(account="vac-lshtm")
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+
+=======
+cv_aggregated
+>>>>>>> cee5b1e517047f0dc169d243fcde514a0ad4e451
+=======
+cv_aggregated
+>>>>>>> cee5b1e517047f0dc169d243fcde514a0ad4e451
