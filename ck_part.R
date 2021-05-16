@@ -81,6 +81,9 @@ co2_world <- co2 %>% filter(country=='World')
 #World subset
 co2_world <- co2 %>% filter(country=='World')
 
+#World subset
+co2_world <- co2 %>% filter(country=='World')
+
 
 # ====== Map Plotting ==============================
 map_plotting <- function(){
@@ -103,6 +106,7 @@ map_plotting <- function(){
 }
 basemap<- map_plotting()
 
+<<<<<<< HEAD
 
 # =========SHINY UI =====================
 co2_text <- expression("CO"[2])
@@ -120,6 +124,12 @@ co2_text
 
 # =========SHINY UI =====================
 
+=======
+co2_text <- expression("CO"[2])
+co2_text
+
+a# =========SHINY UI =====================
+>>>>>>> 845d2ad0e82343edd9df17fb5be16dc496298d68
 ui <- bootstrapPage(
   tags$head(includeHTML("gtag.html")),
   navbarPage(theme = shinytheme("flatly"), collapsible = TRUE,
@@ -136,6 +146,7 @@ ui <- bootstrapPage(
                                         top = 75, left = 55, width = 250, fixed=TRUE,
                                         draggable = TRUE, height = "auto",
                                         span(tags$i(h6("Global CO2 Emission")), style="color:#045a8d"),
+<<<<<<< HEAD
 
                                         h6(textOutput("reactive_co2"), align = "left"),
                                         h6(textOutput("reactive_co2_cumulative"), align = "left"),
@@ -153,6 +164,11 @@ ui <- bootstrapPage(
                                         h5(textOutput("reactive_co2_cumulative"), align = "left"),
                                         h6(textOutput("clean_date_reactive"), align = "center"),
 
+=======
+                                        h5(textOutput("reactive_co2"), align = "left"),
+                                        h5(textOutput("reactive_co2_cumulative"), align = "left"),
+                                        h6(textOutput("clean_date_reactive"), align = "center"),
+>>>>>>> 845d2ad0e82343edd9df17fb5be16dc496298d68
                                         h6(textOutput("reactive_country_count"), align = "right"),
                                         plotOutput("yearly_plot", height="130px", width="100%"),
                                         plotOutput("cumulative_plot", height="130px", width="100%"),
@@ -205,6 +221,7 @@ server = function(input, output, session) {
 
   output$reactive_co2 <- renderText({
     paste0(paste("Yearly: ", prettyNum(reactive_db_world()$co2, big.mark=","), sep = '\n'), " MT")
+<<<<<<< HEAD
 
   })
 
@@ -218,11 +235,17 @@ server = function(input, output, session) {
     paste0(paste("Cumulative: ", prettyNum(reactive_db_world()$cumulative_co2, big.mark=","), sep='\n'), " MT")
   })
 
+=======
+>>>>>>> 845d2ad0e82343edd9df17fb5be16dc496298d68
   })
 
   output$reactive_co2_cumulative <- renderText({
     paste0(paste("Cumulative: ", prettyNum(reactive_db_world()$cumulative_co2, big.mark=","), sep='\n'), " MT")
   })
+<<<<<<< HEAD
+=======
+
+>>>>>>> 845d2ad0e82343edd9df17fb5be16dc496298d68
 
   output$mymap <- renderLeaflet({ 
     basemap
@@ -294,6 +317,7 @@ server = function(input, output, session) {
 
 shinyApp(ui, server)
 # z
+<<<<<<< HEAD
 
 # # paste0(prettyNum(z$co2, big.mark=","), " MT CO2-eq")
 # 
@@ -309,3 +333,14 @@ shinyApp(ui, server)
 # sort(unique(co2$Year))
 
 
+=======
+# paste0(prettyNum(z$co2, big.mark=","), " MT CO2-eq")
+
+# z <- filter(co2_world, Year==2019)
+# z <- paste0(prettyNum(z, co2$cumulative_co2, big.mark=","), " MT CO2-eq")
+# z
+# 
+# print("hi \n hi")
+# cat('hi', 'la', sep ="\n")
+# paste(name,  address, cityState, sep="\n")
+>>>>>>> 845d2ad0e82343edd9df17fb5be16dc496298d68
