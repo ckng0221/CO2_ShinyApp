@@ -114,7 +114,7 @@ basemap<- map_plotting()
 #========== SHINY UI ==========
 ui <- bootstrapPage(
   tags$head(includeHTML("gtag.html")),
-  navbarPage(theme = shinytheme("flatly"), collapsible = TRUE,
+  navbarPage(theme = shinytheme("flatly"), collapsible = FALSE,
              HTML('<a style="text-decoration:none;cursor:default;color:#FFFFFF;" 
                   class="active" href="#">CO2 Tracker</a>'), id="nav",
              windowTitle = "CO2 TRACKER",
@@ -167,11 +167,22 @@ ui <- bootstrapPage(
                                       min = 1970,
                                       max = 2015,
                                       value=1970),
+                          br(),
                           htmlOutput("selected_var"),
                           br(),
-                          h6("PROPORTION OF CO2 EMISSION SOURCES IN 2019"),
-                          plotlyOutput('pie')
-                        ),
+                          plotlyOutput('pie',width = "100%", height = "150%"),
+                          sliderInput("pie_minimum_year",
+                                      "Select year:",
+                                      min = 1970,
+                                      max = 2019,
+                                      value=1970,
+                                      # choices = c(1970:2019),
+                                      # selected = 1970,
+                                      # grid = FALSE,
+                                      animate=animationOptions(interval = 500, loop = FALSE))
+                          
+                          
+                         ),
                         
                         mainPanel(
                           tabsetPanel(
@@ -185,18 +196,16 @@ ui <- bootstrapPage(
                             
                           )
                         )
-                      )
-             ),
+                      )),
              
         
              tabPanel("About this site",
-                      tags$h1("Group 10"
-                              
-                      )
+                      tags$h1("Group 10")
              )
              
   )
 )
+
 
 ### SHINY SERVER ###
 
@@ -311,7 +320,7 @@ server = function(input, output, session) {
     data_long[which(data_long$Year>=input$minimum_year),] %>% filter(country == input$country) %>% 
       
       ggplot(aes(x=Year, y=emission_per_capita, fill=reorder(sources, -emission_per_capita))) +
-      ylab(label = 'CO2 Emission per capita (tonnes)') +
+      ylab(label = 'CO2 Emission per capita (MT)') +
       geom_area()+
       labs(fill = "Sources") +
       theme_bw() + 
@@ -331,27 +340,41 @@ server = function(input, output, session) {
   #   )
   
   output$pie <- renderPlotly(
-    data_long %>% filter(country == input$country, Year==2019, emission_per_capita!=0) %>%
-      plot_ly(labels = ~sources, values = ~emission_per_capita) %>% 
+    data_long %>% 
+      filter(country == input$country, Year<=input$pie_minimum_year, emission_per_capita!=0) %>%
+      group_by(sources)%>%
+      mutate(cumsum=cumsum(emission_per_capita))%>%
+      filter(Year==input$pie_minimum_year)%>%
+      plot_ly(labels = ~sources, values = ~cumsum) %>% 
       add_pie(hole = 0.6)%>% 
-      layout(title = "",  showlegend = T,
-             xaxis = list(showgrid = FALSE, zeroline = TRUE, showticklabels = TRUE),
-             yaxis = list(showgrid = FALSE, zeroline = TRUE, showticklabels = TRUE))
-  )
+      layout(title = " CUMULATIVE PROPORTION OF CO2 EMISSION SOURCES",  showlegend = T,
+             xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+             yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+             autosize=F,
+             width=500,
+             height=330,
+             margin=list(
+               l=50,
+               r=50,
+               b=10,
+               t=40,
+               pad=5)
+     
+  ))
   
   output$percountry = renderPlotly(
     
     con_pro %>%
-      filter(Country == input$country, Record %in% c('CBA_GgCO2', 'PBA_GgCO2')) %>%
+      filter(Country == input$country, Record %in% c('CBA_MtCO2perCap', 'PBA_MtCO2perCap')) %>%
       gather(key = 'Year', value = 'Emission', -c(1:2)) %>%
       mutate(Year = as.numeric(substr(Year, 2, 5))) %>%
       mutate(Emission=as.numeric(Emission))%>%
       filter(Year>input$minimum_year) %>%
-      mutate(Record = ifelse(Record == 'CBA_GgCO2', 'Consumption', 'Production')) %>%
+      mutate(Record = ifelse(Record == 'CBA_MtCO2perCap', 'Consumption', 'Production')) %>%
       
       ggplot(aes(x = Year, y = Emission, color = Record)) +
       geom_line(size = 2) +
-      ylab(label = 'CO2 Emission (GgCO2)') +
+      ylab(label = 'CO2 Emission per capita (MT)') +
       scale_color_discrete(name = 'Emission Type') +
       theme_bw() + 
       theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10))
@@ -360,9 +383,15 @@ server = function(input, output, session) {
   
   output$selected_var <- renderText({ 
     
-    perct<-data_long %>% filter(country == input$country, Year==2019, emission_per_capita!=0) %>% mutate(pect=round((emission_per_capita/sum(emission_per_capita))*100,digits=2))
-    max_sources<-perct$sources[which.max(perct$pect)]
-    max_perct<-perct$pect[which.max(perct$pect)]
+    perct<-data_long %>% 
+      filter(country == input$country, emission_per_capita!=0)%>%
+      group_by(sources)%>%
+      mutate(cumsum=cumsum(emission_per_capita))%>%
+      filter(Year==2019)%>%
+      ungroup(sources)%>%
+      mutate(pect=round((cumsum/sum(cumsum))*100,digits=2))
+      max_sources<-perct$sources[which.max(perct$pect)]
+      max_perct<-perct$pect[which.max(perct$pect)]
     paste("As of 2019, ", "<b>",max_perct,"</b>", "% of co2 was contributed by ","<b>",sub("_.*", "", max_sources),"</b>"," as the largest sources of co2 emission in", "<b>",input$country,"</b>",".")
   })
   
