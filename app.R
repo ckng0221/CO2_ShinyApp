@@ -37,6 +37,9 @@ co2$other_co2_per_capita[is.na(co2$other_co2_per_capita)] <- 0
 data_long <- gather(co2, sources, emission_per_capita, cement_co2_per_capita:other_co2_per_capita, factor_key=TRUE)
 data2_long<- gather(data_long, emission_type, annual_emission, co2, consumption_co2, factor_key=TRUE)
 intersect_country<-intersect(unique(co2$country),unique(con_pro$Country))
+data_long$color <- leaflet::colorFactor(
+  palette = "RdYlBu", domain = data_long$sources
+)(data_long$sources)
 
 
 # ==== Read countries map (CK) ==========
@@ -340,12 +343,13 @@ server = function(input, output, session) {
   #   )
   
   output$pie <- renderPlotly(
+    
     data_long %>% 
       filter(country == input$country, Year<=input$pie_minimum_year, emission_per_capita!=0) %>%
       group_by(sources)%>%
       mutate(cumsum=cumsum(emission_per_capita))%>%
       filter(Year==input$pie_minimum_year)%>%
-      plot_ly(labels = ~sources, values = ~cumsum) %>% 
+      plot_ly(labels = ~sources, values = ~cumsum, marker = list(colors=~color)) %>% 
       add_pie(hole = 0.6)%>% 
       layout(title = " CUMULATIVE PROPORTION OF CO2 EMISSION SOURCES",  showlegend = T,
              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
@@ -361,6 +365,7 @@ server = function(input, output, session) {
                pad=5)
      
   ))
+
   
   output$percountry = renderPlotly(
     
