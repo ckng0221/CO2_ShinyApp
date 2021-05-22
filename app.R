@@ -19,6 +19,13 @@ if(!require(shinythemes)) install.packages("shinythemes", repos = "http://cran.u
 if(!require(tidyr)) install.packages("tidyr", repos = "http://cran.us.r-project.org")
 if(!require(scales)) install.packages("scales", repos = "http://cran.us.r-project.org")
 
+# Sameer Dependency
+library(dplyr)
+library(plotly)
+library(patchwork)  
+library(ggplot2)
+
+
 # set mapping colour for each outbreak
 co2_yearly_col <- "#014419"
 co2_cumulative_col <- "#011f44"
@@ -68,6 +75,7 @@ co2_pal <- colorBin("Greens", domain=co2_large_countries$co2, bins = bins)
 co2_world <- co2 %>% filter(country=='World')
 
 
+
 #===== Ploting Functions ========
 # Cumulative plot
 cumulative_plot = function(df, plot_date) {
@@ -113,6 +121,89 @@ map_plotting <- function(){
 }
 basemap<- map_plotting()
 
+# ====== Sameer Part ==========
+# Variables
+
+co2_details <- co2 %>% 
+                filter(country == 'World', Year >= 1959) %>% 
+                select(c(Year, country, co2))
+
+temperature <- read.csv("temperature.csv")
+temp_detail <- temperature %>%
+                filter(Year >= 1880) %>% 
+                select(c(Year,No_Smoothing))
+temp_det1 = temp_detail %>% 
+              arrange(temp_detail$Year) %>% 
+              na.omit(temp_detail) %>% 
+              rename('Global Temperature (deg C)'=No_Smoothing)
+
+co2_ppm <-  read.csv("co2ppm.csv")
+co2_ppm <- co2_ppm %>%
+            filter(year >= 1959) %>%
+            select(c(year,co2ppm))
+co2_ppm <- co2_ppm %>%
+            rename('Year'=year)
+
+# ------ Graphs --------
+
+# Graph 1 : P1 & P2
+globaltemp_plot1_func <- function(){
+  co2_overyear_data <- left_join(co2_details, co2_ppm, by="Year")
+  co2_overyear <- co2_overyear_data %>% 
+    arrange(co2_overyear_data$Year) %>%
+    na.omit(co2_overyear_data) %>%
+    rename('CO2 Emission (million tonnes per year)'= co2,
+           'CO2 (parts per million)'= co2ppm)
+  
+  
+  # Left Plot
+  p1 <- co2_overyear %>% 
+    ggplot(aes(x = Year , y =`CO2 (parts per million)`)) + 
+    geom_line(color = "green", size = 2) +
+    labs(title="CO2 (PPM) level in atmosphere", 
+         caption = "Source: : Global Monitoring Laboratory 
+         \n https://gml.noaa.gov/ccgg/trends/data.html") +
+    scale_x_continuous(breaks = seq(1959,2020,5), limits = c(1959,2020))+
+    scale_y_continuous(breaks = seq(300,420,20), limits = c(300,420))+
+    theme(panel.background = element_rect(fill = "#BFE3CD", 
+                                          colour = "#6D9EC1", size = 2, 
+                                          linetype = "solid"))
+  
+  # Right Plot
+  p2 <- co2_overyear %>%
+    ggplot(aes(x = Year , y =`CO2 Emission (million tonnes per year)`)) + 
+    geom_line(color = "blue", size = 2) +
+    labs(title="Annual production-based emissions of CO2", 
+         caption = "Source: Our World in Data \n https://ourworldindata.org/co2-emissions") +
+    scale_x_continuous(breaks = seq(1959,2020,5), limits = c(1959,2020))+
+    scale_y_continuous(breaks = seq(5000,40000,5000), limits = c(5000,40000))+
+    theme(panel.background = element_rect(fill = "#BFE3CD", 
+                                          colour = "#6D9EC1",
+                                          size = 2,
+                                          linetype = "solid"))
+  
+  leftright_graph <- plot(p1+p2)
+  leftright_graph
+}
+globaltemp_plot1_func()
+
+
+
+#P3 This graph illustrates the change in global temperature (deg C) from 1880  to 2019.
+globaltemp_plot2_func <- function(){
+  p3 = temp_det1 %>% 
+    ggplot(aes(x = Year , y =`Global Temperature (deg C)`)) + 
+    geom_line(color = "red", size = 2) +
+    labs(title="Change in global temperature (deg C) from 1880 to 2020",
+         caption = "Source: Global Climate Change \n https://climate.nasa.gov/vital-signs/global-temperature/") +
+    scale_x_continuous(breaks = seq(1880,2020,20), limits = c(1880,2020))+
+    scale_y_continuous(breaks = seq(-0.5,1,0.1), limits = c(-0.5,1.1))+
+    theme(panel.background = element_rect(fill = "#B0ECB0", colour = "#6D9EC1", size = 2, linetype = "solid"))
+  p3
+}
+
+
+
 
 #========== SHINY UI ==========
 ui <- bootstrapPage(
@@ -149,27 +240,20 @@ ui <- bootstrapPage(
                       )
              ),
              
-             # # Data Tab
-             # tabPanel("Data",
-             #          numericInput("maxrows", "Rows to show", 25),
-             #          verbatimTextOutput("rawtable"),
-             #          downloadButton("downloadCsv", "Download as CSV"),tags$br(),tags$br(),
-             #          "Adapted from timeline data published by ", tags$a(href="https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series",
-             #                                                             "Johns Hopkins Center for Systems Science and Engineering.")
-             # ),
-             
              # Dashboard Tab
              tabPanel("Dashboard",
                       titlePanel(""),
                       sidebarLayout(
                         position = "left",
                         sidebarPanel(
-                          pickerInput("country", "Select country:", choices = unique(intersect_country) ,selected = "Malaysia"),
+                          pickerInput("country", "Select country:", 
+                                      choices = unique(intersect_country),
+                                      selected = "Malaysia"),
                           sliderInput("minimum_year",
                                       "Minimum year:",
                                       min = 1970,
                                       max = 2015,
-                                      value=1970),
+                                      value = 1970),
                           br(),
                           htmlOutput("selected_var"),
                           br(),
@@ -178,15 +262,12 @@ ui <- bootstrapPage(
                                       "Select year:",
                                       min = 1970,
                                       max = 2019,
-                                      value=1970,
+                                      value = 1970,
                                       # choices = c(1970:2019),
                                       # selected = 1970,
                                       # grid = FALSE,
                                       animate=animationOptions(interval = 500, loop = FALSE))
-                          
-                          
                          ),
-                        
                         mainPanel(
                           tabsetPanel(
                             tabPanel("Sources of Emission", 
@@ -195,17 +276,60 @@ ui <- bootstrapPage(
                             tabPanel("Type of Emission", 
                                      h6("TYPE OF CO2 EMISSION"),
                                      plotlyOutput('percountry'))
-                            
-                            
                           )
                         )
                       )),
              
-        
+             # Sameer Part
+             tabPanel("Atmospheric CO2",
+                      titlePanel(""),
+                      sidebarLayout(
+                        position = "left", 
+                        sidebarPanel(
+                          width = 2,
+                          h6("Relationship between CO2 & Global Temperature")
+                        ),
+                        mainPanel(
+                          tabsetPanel(
+                              # Tab 1
+                              tabPanel("CO2 Concentration vs. CO2 Emission",
+                                       h6(
+                                          "The atmospheric level of carbon dioxide has been steadily rising since the 1960's. 
+                                          In 2019, carbon dioxide levels reached 411 parts per million, 
+                                          in comparison to 1960 levels which stood at about 317 parts per million. 
+                                          Projections for 2020 show concentrations of carbon dioxide have increased to 414 parts per million. 
+                                          Emissions of carbon dioxide largely come from human activities such as burning fossil fuels and deforestation. 
+                                          Data is taken from Mauna Loa CO2 annual mean data. Data has been measured at Mauna Loa Observatory, 
+                                          Hawaii as it constitutes the longest record of direct carbon dioxide measurements in the atmosphere."
+                                       ),
+                                       h6(
+                                          "Global climate change is mostly triggered by
+                                          carbon dioxide emissions.
+                                          It’s widely recognized that to avoid the worst impacts of climate change, 
+                                          the world needs to urgently reduce emissions. This graph illustrates the change in Carbon Dioxide (CO2)
+                                          emission based on annual production from 1959 to 2019. CO2 emissions data from Our World 
+                                          in Data and the Global Carbon Project."
+                                       ),
+                                       br(),
+                                       plotOutput("globaltemp_plot1")),
+                              # Tab 2
+                              tabPanel("Global Temperature",
+                                       h6(
+                                       "This graph illustrates the change in global temperature (deg C) from 1880 to 2019. 
+                                       Nineteen of the warmest years have occurred since 2000, with the exception of 1998. 
+                                       The year 2020 tied with 2016 for the warmest year on record since record-keeping began in 1880."
+                                       ),
+                                       h6(
+                                       "Data is taken from Global Climate Change."
+                                       ),
+                                       br(),
+                                       plotOutput('globaltemp_plot2'))
+                          )
+                        ))),
+             
              tabPanel("About this site",
                       tags$h1("Group 10")
              )
-             
   )
 )
 
@@ -400,6 +524,14 @@ server = function(input, output, session) {
     paste("As of 2019, ", "<b>",max_perct,"</b>", "% of co2 was contributed by ","<b>",sub("_.*", "", max_sources),"</b>"," as the largest sources of co2 emission in", "<b>",input$country,"</b>",".")
   })
   
+  
+  output$globaltemp_plot1 <- renderPlot({
+    globaltemp_plot1_func()
+  })
+
+  output$globaltemp_plot2 <- renderPlot({
+    globaltemp_plot2_func()
+  })
   
 }
 
