@@ -32,13 +32,13 @@
 30,Bolivia,BO,BOL,68,-17,-65,1.3,11673000,Bolivia,Global,South America
 31,"Bolivia, Plurinational State of",BO,BOL,68,-17,-65,1.3,11673000,"Bolivia,PlurinationalStateof",Global,South America
 32,Vanuatu,VU,VUT,548,-16,167,1.3,307000,Vanuatu,Global,Oceania
-33,"Saint Helena, Ascension and Tristan da Cunha",SH,SHN,654,-15.9333,-5.7,1.3,6000,"SaintHelena,AscensionandTristandaCunha",Global,Africa
+33,Saint Helena,SH,SHN,654,-15.9333,-5.7,1.3,6000,"SaintHelena,AscensionandTristandaCunha",Global,Africa
 34,French Polynesia,PF,PYF,258,-15,-140,1.3,281000,FrenchPolynesia,Global,Oceania
 35,Zambia,ZM,ZMB,894,-15,30,1.3,18384000,Zambia,Global,Africa
 36,American Samoa,AS,ASM,16,-14.3333,-170,1.3,55000,AmericanSamoa,Global,Oceania
 37,Samoa,WS,WSM,882,-13.5833,-172.3333,1.3,198000,Samoa,Global,Oceania
 38,Malawi,MW,MWI,454,-13.5,34,1.3,19130000,Malawi,Global,Africa
-39,Wallis and Futuna,WF,WLF,876,-13.3,-176.2,1.3,11000,WallisandFutuna,Global,Oceania
+39,Wallis and Futuna Islands,WF,WLF,876,-13.3,-176.2,1.3,11000,WallisandFutuna,Global,Oceania
 40,Mayotte,YT,MYT,175,-12.8333,45.1667,1.3,273000,Mayotte,Global,Africa
 42,Cocos (Keeling) Islands,CC,CCK,166,-12.5,96.8333,1.3,NA,Cocos(Keeling)Islands,Global,Asia
 41,Angola,AO,AGO,24,-12.5,18.5,1.3,32866000,Angola,Global,Africa
@@ -47,28 +47,28 @@
 45,Brazil,BR,BRA,76,-10,-55,1.3,212559000,Brazil,Global,South America
 46,Peru,PE,PER,604,-10,-76,1.3,32972000,Peru,Global,South America
 47,Tokelau,TK,TKL,772,-9,-172,1.3,1000,Tokelau,Global,Oceania
-48,Timor-Leste,TL,TLS,626,-8.55,125.5167,1.3,1318000,TimorLeste,Global,Asia
+48,Timor,TL,TLS,626,-8.55,125.5167,1.3,1318000,TimorLeste,Global,Asia
 49,Solomon Islands,SB,SLB,90,-8,159,1.3,687000,SolomonIslands,Global,Oceania
 50,Tuvalu,TV,TUV,798,-8,178,1.3,12000,Tuvalu,Global,Oceania
 51,British Indian Ocean Territory,IO,IOT,86,-6,71.5,1.3,NA,BritishIndianOceanTerritory,Global,Asia
 52,Papua New Guinea,PG,PNG,598,-6,147,1.3,8947000,PapuaNewGuinea,Global,Oceania
-53,"Tanzania, United Republic of",TZ,TZA,834,-6,35,1.3,59734000,Tanzania,Global,Africa
+53,Tanzania,TZ,TZA,834,-6,35,1.3,59734000,Tanzania,Global,Africa
 54,Indonesia,ID,IDN,360,-5,120,1.3,273524000,Indonesia,Global,Asia
 55,Seychelles,SC,SYC,690,-4.5833,55.6667,1.3,98000,Seychelles,Global,Africa
 56,Burundi,BI,BDI,108,-3.5,30,1.3,11891000,Burundi,Global,Africa
 57,Ecuador,EC,ECU,218,-2,-77.5,1.3,17643000,Ecuador,Global,South America
 58,Rwanda,RW,RWA,646,-2,30,1.3,12952000,Rwanda,Global,Africa
-59,Republic of the Congo,CG,COG,178,-1,15,1.3,5518000,Congo,Global,Africa
+59,Congo,CG,COG,178,-1,15,1.3,5518000,Congo,Global,Africa
 60,Gabon,GA,GAB,266,-1,11.75,1.3,2226000,Gabon,Global,Africa
 61,Nauru,NR,NRU,520,-0.5333,166.9167,1.3,11000,Nauru,Global,Oceania
-62,Democratic Republic of the Congo,CD,COD,180,0,25,1.3,89561000,DemocraticRepublicoftheCongo,Global,Africa
+62,Democratic Republic of Congo,CD,COD,180,0,25,1.3,89561000,DemocraticRepublicoftheCongo,Global,Africa
 63,Kenya,KE,KEN,404,1,38,1.3,53771000,Kenya,Global,Africa
 64,Sao Tome and Principe,ST,STP,678,1,7,1.3,219000,SaoTomeandPrincipe,Global,Africa
 65,Uganda,UG,UGA,800,1,32,1.3,45741000,Uganda,Global,Africa
 66,Singapore,SG,SGP,702,1.3667,103.8,1.3,5850000,Singapore,Global,Asia
 67,Kiribati,KI,KIR,296,1.4167,173,1.3,119000,Kiribati,Global,Oceania
 68,Equatorial Guinea,GQ,GNQ,226,2,10,1.3,1403000,EquatorialGuinea,Global,Africa
-69,Malaysia,MY,MYS,458,2.5,112.5,1.3,32366000,Malaysia,Global,Asia
+69,Malaysia,MY,MYS,458,4.2105,101.9758,1.3,32366000,Malaysia,Global,Asia
 70,Maldives,MV,MDV,462,3.25,73,1.3,541000,Maldives,Global,Asia
 72,French Guiana,GF,GUF,254,4,-53,1.3,299000,FrenchGuiana,Global,South America
 71,Colombia,CO,COL,170,4,-72,1.3,50883000,Colombia,Global,South America
@@ -78,7 +78,7 @@
 76,Guyana,GY,GUY,328,5,-59,1.3,787000,Guyana,Global,South America
 77,Cameroon,CM,CMR,120,6,12,1.3,26546000,Cameroon,Global,Africa
 78,Liberia,LR,LBR,430,6.5,-9.5,1.3,5058000,Liberia,Global,Africa
-79,"Micronesia, Federated States of",FM,FSM,583,6.9167,158.25,1.3,115000,"Micronesia,FederatedStatesof",Global,Oceania
+79,Micronesia,FM,FSM,583,6.9167,158.25,1.3,115000,"Micronesia,FederatedStatesof",Global,Oceania
 81,Sri Lanka,LK,LKA,144,7,81,1.3,21413000,SriLanka,Global,Asia
 80,Central African Republic,CF,CAF,140,7,21,1.3,4830000,CentralAfricanRepublic,Global,Africa
 82,Palau,PW,PLW,585,7.5,134.5,1.3,18000,Palau,Global,Oceania
@@ -114,7 +114,7 @@
 111,Saint Vincent and the Grenadines,VC,VCT,670,13.25,-61.2,1.3,111000,SaintVincentandtheGrenadines,Global,North America
 112,St. Vincent and the Grenadines,VC,VCT,670,13.25,-61.2,1.3,111000,St.VincentandtheGrenadines,Global,North America
 114,Guam,GU,GUM,316,13.4667,144.7833,1.3,169000,Guam,Global,Oceania
-113,The Gambia,GM,GMB,270,13.4667,-16.5667,1.3,2417000,Gambia,Global,Africa
+113,Gambia,GM,GMB,270,13.4667,-16.5667,1.3,2417000,Gambia,Global,Africa
 115,El Salvador,SV,SLV,222,13.8333,-88.9167,1.3,6486000,ElSalvador,Global,North America
 116,Saint Lucia,LC,LCA,662,13.8833,-61.1333,1.3,184000,SaintLucia,Global,North America
 117,Senegal,SN,SEN,686,14,-14,1.3,16744000,Senegal,Global,Africa
@@ -137,15 +137,15 @@
 134,Mali,ML,MLI,466,17,-4,1.3,20251000,Mali,Global,Africa
 135,Antigua and Barbuda,AG,ATG,28,17.05,-61.8,1.3,98000,AntiguaandBarbuda,Global,North America
 136,Belize,BZ,BLZ,84,17.25,-88.75,1.3,398000,Belize,Global,North America
-137,Saint Kitts and Nevis,KN,KNA,659,17.3333,-62.75,1.3,53000,SaintKittsandNevis,Global,North America
+137,St. Kitts-Nevis-Anguilla,KN,KNA,659,17.3333,-62.75,1.3,53000,SaintKittsandNevis,Global,North America
 259,Saint Barthelemy,BL,BLM,652,17.9,-62.83,1.3,10000,SaintBarthelemy,Global,North America
-138,Lao People's Democratic Republic,LA,LAO,418,18,105,1.3,7276000,Laos,Global,Asia
+138,Laos,LA,LAO,418,18,105,1.3,7276000,Laos,Global,Asia
 258,Saint Martin,MF,MAF,663,18.07,-63.05,1.3,39000,SaintMartin,Global,North America
 139,Anguilla,AI,AIA,660,18.25,-63.1667,1.3,15000,Anguilla,Global,North America
 141,Puerto Rico,PR,PRI,630,18.25,-66.5,1.3,2861000,PuertoRico,Global,North America
 140,Jamaica,JM,JAM,388,18.25,-77.5,1.3,2961000,Jamaica,Global,North America
 142,"Virgin Islands, U.S.",VI,VIR,850,18.3333,-64.8333,1.3,104000,"VirginIslands,U.S.",Global,North America
-143,"Virgin Islands, British",VG,VGB,92,18.5,-64.5,1.3,30000,"VirginIslands,British",Global,North America
+143,British Virgin Islands,VG,VGB,92,18.5,-64.5,1.3,30000,"VirginIslands,British",Global,North America
 144,Dominican Republic,DO,DOM,214,19,-70.6667,1.3,10848000,DominicanRepublic,Global,North America
 145,Haiti,HT,HTI,332,19,-72.4167,1.3,11403000,Haiti,Global,North America
 146,United States Minor Outlying Islands,UM,UMI,581,19.2833,166.6,1.3,NA,UnitedStatesMinorOutlyingIslands,Global,Oceania
@@ -163,7 +163,7 @@
 158,Taiwan,TW,TWN,158,23.5,121,1.3,23817000,Taiwan,Global,Asia
 160,Bangladesh,BD,BGD,50,24,90,1.3,164689000,Bangladesh,Global,Asia
 161,United Arab Emirates,AE,ARE,784,24,54,1.3,9890000,UnitedArabEmirates,Global,Asia
-162,The Bahamas,BS,BHS,44,24.25,-76,1.3,393000,Bahamas,Global,North America
+162,Bahamas,BS,BHS,44,24.25,-76,1.3,393000,Bahamas,Global,North America
 163,Western Sahara,EH,ESH,732,24.5,-13,1.3,597000,WesternSahara,Global,Africa
 164,Libya,LY,LBY,434,25,17,1.3,6871000,Libya,Global,Africa
 165,Libyan Arab Jamahiriya,LY,LBY,434,25,17,1.3,6871000,LibyanArabJamahiriya,Global,Africa
@@ -179,8 +179,8 @@
 175,Jordan,JO,JOR,400,31,36,1.1,10203000,Jordan,Global,Asia
 176,Israel,IL,ISR,376,31.5,34.75,1.1,8656000,Israel,Global,Asia
 263,West Bank and Gaza,NA,NA,NA,31.9522,35.2332,1.1,4800000,WestBankandGaza,Global,Asia
-179,Occupied Palestinian Territory,PS,PSE,275,32,35.25,1.1,5101000,occupiedPalestinianterritory,Global,Asia
-177,Iran (Islamic Republic of),IR,IRN,364,32,53,1.1,83993000,Iran,Global,Asia
+179,Palestine,PS,PSE,275,32,35.25,1.1,5101000,occupiedPalestinianterritory,Global,Asia
+177,Iran,IR,IRN,364,32,53,1.1,83993000,Iran,Global,Asia
 178,Morocco,MA,MAR,504,32,-5,1.1,36911000,Morocco,Global,Africa
 180,Bermuda,BM,BMU,60,32.3333,-64.75,1.1,62000,Bermuda,Global,North America
 181,Afghanistan,AF,AFG,4,33,65,1.1,38928000,Afghanistan,Global,Asia
@@ -194,14 +194,14 @@
 189,Malta,MT,MLT,470,35.8333,14.5833,1.1,442000,Malta,Global,Europe
 190,Japan,JP,JPN,392,36,138,1.1,126476000,Japan,Global,Asia
 191,Gibraltar,GI,GIB,292,36.1833,-5.3667,1.1,34000,Gibraltar,Global,Europe
-192,"Korea, Republic of",KR,KOR,410,37,127.5,1.1,51269000,"Korea,Republicof",Global,Asia
+192,South Korea,KR,KOR,410,37,127.5,1.1,51269000,"Korea,Republicof",Global,Asia
 193,Republic of Korea,KR,KOR,410,37,127.5,1.1,51269000,RepublicofKorea,Global,Asia
 194,United States,US,United States,840,38,-97,1.1,331003000,US,Global,North America
 195,Greece,GR,GRC,300,39,22,1.1,10423000,Greece,Global,Europe
 196,Tajikistan,TJ,TJK,762,39,71,1.1,9538000,Tajikistan,Global,Asia
 197,Turkey,TR,TUR,792,39,35,1.1,84339000,Turkey,Global,Asia
 198,Portugal,PT,PRT,620,39.5,-8,1.1,10197000,Portugal,Global,Europe
-200,"Korea, Democratic People's Republic of",KP,PRK,408,40,127,0.9,25779000,"Korea,DemocraticPeople'sRepublicof",Global,Asia
+200,North Korea,KP,PRK,408,40,127,0.9,25779000,"Korea,DemocraticPeople'sRepublicof",Global,Asia
 199,Armenia,AM,ARM,51,40,45,0.9,2963000,Armenia,Global,Asia
 201,Spain,ES,ESP,724,40,-4,0.9,46755000,Spain,Global,Europe
 202,Turkmenistan,TM,TKM,795,40,60,0.9,6031000,Turkmenistan,Global,Asia
@@ -228,7 +228,7 @@
 222,Slovenia,SI,SVN,705,46,15,0.9,2079000,Slovenia,Global,Europe
 223,Saint Pierre and Miquelon,PM,SPM,666,46.8333,-56.3333,0.9,6000,SaintPierreandMiquelon,Global,North America
 224,Hungary,HU,HUN,348,47,20,0.9,9660000,Hungary,Global,Europe
-225,"Moldova, Republic of",MD,MDA,498,47,29,0.9,4034000,Moldova,Global,Europe
+225,Moldova,MD,MDA,498,47,29,0.9,4034000,Moldova,Global,Europe
 226,Switzerland,CH,CHE,756,47,8,0.9,8655000,Switzerland,Global,Europe
 227,Liechtenstein,LI,LIE,438,47.1667,9.5333,0.9,38000,Liechtenstein,Global,Europe
 228,Austria,AT,AUT,40,47.3333,13.3333,0.9,9006000,Austria,Global,Europe
@@ -237,7 +237,7 @@
 231,Ukraine,UA,UKR,804,49,32,0.9,43734000,Ukraine,Global,Europe
 232,Jersey,JE,JEY,832,49.21,-2.13,0.9,NA,Jersey,Global,Europe
 233,Guernsey,GG,GGY,831,49.5,-2.56,0.9,NA,Guernsey,Global,Europe
-234,Czech Republic,CZ,CZE,203,49.75,15.5,0.9,10709000,Czechia,Global,Europe
+234,Czechia,CZ,CZE,203,49.75,15.5,0.9,10709000,Czechia,Global,Europe
 235,Luxembourg,LU,LUX,442,49.75,6.1667,0.9,626000,Luxembourg,Global,Europe
 236,Belgium,BE,BEL,56,50.8333,4,0.8,11590000,Belgium,Global,Europe
 237,Germany,DE,DEU,276,51,9,0.8,83784000,Germany,Global,Europe
@@ -245,7 +245,7 @@
 239,Netherlands,NL,NLD,528,52.5,5.75,0.8,17135000,Netherlands,Global,Europe
 240,Belarus,BY,BLR,112,53,28,0.8,9449000,Belarus,Global,Europe
 241,Ireland,IE,IRL,372,53,-8,0.8,4938000,Ireland,Global,Europe
-242,UK,GB,GBR,826,54,-2,0.8,67886000,UnitedKingdom,Global,Europe
+242,United Kingdom,GB,GBR,826,54,-2,0.8,67886000,UnitedKingdom,Global,Europe
 243,Isle of Man,IM,IMN,833,54.23,-4.55,0.8,85000,IsleofMan,Global,Europe
 244,Denmark,DK,DNK,208,56,10,0.8,5792000,Denmark,Global,Europe
 245,Lithuania,LT,LTU,440,56,24,0.8,2722000,Lithuania,Global,Europe
