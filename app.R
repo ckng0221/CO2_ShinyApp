@@ -131,7 +131,7 @@ ui <- bootstrapPage(
                                         h6(textOutput("reactive_co2"), align = "left"),
                                         h6(textOutput("reactive_co2_cumulative"), align = "left"),
                                         h6(strong(textOutput("clean_date_reactive"), align = "center")),
-                                        h6(textOutput("reactive_country_count"), align = "right"),
+                                        # h6(textOutput("reactive_country_count"), align = "right"),
                                         plotOutput("yearly_plot", height="130px", width="100%"),
                                         plotOutput("cumulative_plot", height="130px", width="100%"),
                                         
