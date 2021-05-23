@@ -78,7 +78,7 @@ cumulative_plot = function(df, plot_date) {
   plot_df = subset(df, Year<=plot_date)
   g1 = ggplot(plot_df, aes(x = Year, y = cumulative_co2, color='Global')) + 
     geom_line() + geom_point(size = 1, alpha = 0.8) +
-    ylab("CO2 (million tonnes)") +  xlab("Date") + theme_bw() + labs(title="Cumulative") +
+    ylab("CO2 (mil tonnes)") +  xlab("Date") + theme_bw() + labs(title="Cumulative") +
     scale_colour_manual(values=c(co2_yearly_col)) + 
     scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=12), 
@@ -91,7 +91,7 @@ yearly_plot = function(df, plot_date) {
   plot_df = subset(df, Year<=plot_date)
   g1 = ggplot(plot_df, aes(x = Year, y = co2, color='Global')) + 
     geom_line() + geom_point(size = 1, alpha = 0.8) +
-    ylab("CO2 (million tonnes/year)") +  xlab("Date") + theme_bw() + labs(title="Yearly") +
+    ylab("CO2 (mil tonnes/year)") +  xlab("Date") + theme_bw() + labs(title="Yearly") +
     scale_colour_manual(values=c(co2_yearly_col)) +
     scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=12), 
