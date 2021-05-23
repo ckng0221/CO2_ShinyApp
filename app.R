@@ -242,7 +242,7 @@ ui <- bootstrapPage(
              ),
              
              # Dashboard Tab
-             tabPanel("Dashboard",
+             tabPanel("Sources of Emission",
                       titlePanel(""),
                       sidebarLayout(
                         position = "left",
@@ -328,11 +328,79 @@ ui <- bootstrapPage(
                           )
                         ))),
              
-             tabPanel("About this site",
-                      tags$h1("Group 10")
-             )
-  )
-)
+             tabPanel("User Guide",
+                      titlePanel("Global CO2 Tracker"), 
+                      
+                      h5("Global CO2 Tracker (GCT) is an online web app that provides data and dashboard for monitoring global CO2 emission. It uses data to illuminate the state of CO2 level worldwide and tells the stories of how CO2 contributed by each countries. GCT allows anyone to access information about where and how CO2 emission are changing around the world.
+"),
+                      br(),
+                      sidebarLayout(
+                        position = "left",
+                        sidebarPanel(
+                        
+                        h4("Overview"),
+                        h5("The map & dashboards on GCT allow you to explore hundreds of spatial datasets that 
+                        help explain when, where and how CO2 emission are changing around the world."),
+                        
+                        h5(" The map tell a visual story about how CO2 emmission is changing in a particular place. 
+                          The dashboards for sources of CO2 emission help answer important questions about CO2 change in any country and enable you to view
+                           statistics through interactive charts and graphs."),
+                       h5("Let's get started with our step-by-step instructions.") ),
+                         
+                      
+                        mainPanel(
+                          tabsetPanel(
+                            tabPanel("CO2 World Map", 
+                                     h3("Use the map"),
+                                     h5("The map allows you to visualize and analyze spatial data. 
+                                     Below you'll find key functionalities to help you explore the 
+                                     map visualizations using the function available on the map."),
+                                     img(src = "co2worldmap_illustration.png", width = 1000),
+                                     br(),
+                                     br(),
+                                     strong(":: Yearly/ Cumulative CO2 Emission"),
+                                     h5("Select to display yearly or cumulative CO2 emission on the map. 
+                                        Yearly CO2 Emission is indicated by green bubble while cumulative CO2 Emission is indicated by blue bubble. 
+                                        The size of the bubble show the amount of CO2 emission."),
+                                     strong(":: Adjust Display Year"),
+                                     h5("Adjust the slider to select year for visualization.
+                                        Once a year range had been selected, visualization on the map will adjusted accordingly
+                                        with CO2 data up until the year selected."),
+                                     strong(":: Play Button"),
+                                     h5("Click the play button to see how CO2 emission changes across the year globally.")
+                                     ),
+                                     
+                            tabPanel("Sources of Emission", 
+                                     h3("Use the charts"),
+                                     h5("The charts allow you to visualize and analyze sources of CO2 emission. 
+                                     Below you'll find key functionalities to help you explore the charts."),
+                                     img(src = "dashboard_illustration.png", width = 1000),
+                                     br(),
+                                     br(),
+                                     strong(":: Dropdown for Country Selection"),
+                                     h5("Select a country to further analyze on its sources of emission. All the display charts will be adjusted based on country selected.
+                                        This country selection apply to all the charts in display."),
+                                     strong(":: Adjust Display Year"),
+                                     h5("Adjust the slider to select year range for visualization.
+                                        Once a year range had been selected, visualization on the charts will adjusted accordingly
+                                        with CO2 data.
+                                        This year slider only apply to chart on [sources of emission] and [type of emission]."),
+                                     strong(":: Select Type of Charts"),
+                                     h5("Switch between different tabs to view sources of emission or type of emission (production emission vs consumption emission) 
+                                        for a selected country."),
+                                     strong(":: Summary Text"),
+                                     h5("The largest sources of cumulative emission displayed in text for selected country."),
+                                     strong(":: Play Button for Cumulative Proportion"),
+                                     h5("This play button is associated only with donut chart on [Cumulative Proportion of CO2 Emission Sources]. Click the play button to see 
+                                        how the cumulative CO2 emission proportion from each sources changes across the year on selected country.")
+                                     )
+                          )
+                        )
+                      )
+                    )
+             
+             ))
+ 
 
 
 ### SHINY SERVER ###
