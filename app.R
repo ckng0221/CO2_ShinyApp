@@ -72,7 +72,7 @@ co2_pal <- colorBin("Greens", domain=co2_large_countries$co2, bins = bins)
 co2_world <- co2 %>% filter(country=='World')
 
 
-#===== Ploting Functions ========
+#===== Plotting Functions ========
 # Cumulative plot
 cumulative_plot = function(df, plot_date) {
   plot_df = subset(df, Year<=plot_date)
@@ -81,7 +81,7 @@ cumulative_plot = function(df, plot_date) {
     ylab("CO2 (MT)") +  xlab("Date") + theme_bw() + labs(title="Cumulative") +
     scale_colour_manual(values=c(co2_yearly_col)) + 
     scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
-    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10), 
+    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=12), 
           plot.margin = margin(5, 12, 5, 5))
   g1
 }
@@ -94,7 +94,7 @@ yearly_plot = function(df, plot_date) {
     ylab("CO2 (MT/year)") +  xlab("Date") + theme_bw() + labs(title="Yearly") +
     scale_colour_manual(values=c(co2_yearly_col)) +
     scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
-    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10), 
+    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=12), 
           plot.margin = margin(5, 12, 5, 5))
   g1
 }
@@ -158,9 +158,8 @@ globaltemp_plot1_func <- function(){
   p1 <- co2_overyear %>% 
     ggplot(aes(x = Year , y =`CO2 (parts per million)`)) + 
     geom_line(color = "green", size = 2) +
-    labs(title="CO2 (PPM) level in atmosphere", 
-         caption = "Source: : Global Monitoring Laboratory 
-         \n https://gml.noaa.gov/ccgg/trends/data.html") +
+    labs(title="CO2 (PPM) Level in Atmosphere", 
+         caption = "\n\nSource: : Global Monitoring Laboratory \n https://gml.noaa.gov/ccgg/trends/data.html") +
     scale_x_continuous(breaks = seq(1959,2020,5), limits = c(1959,2020))+
     scale_y_continuous(breaks = seq(300,420,20), limits = c(300,420))+
     theme(panel.background = element_rect(fill = "#BFE3CD", 
@@ -171,8 +170,8 @@ globaltemp_plot1_func <- function(){
   p2 <- co2_overyear %>%
     ggplot(aes(x = Year , y =`CO2 Emission (million tonnes per year)`)) + 
     geom_line(color = "blue", size = 2) +
-    labs(title="Annual production-based emissions of CO2", 
-         caption = "Source: Our World in Data \n https://ourworldindata.org/co2-emissions") +
+    labs(title="Annual Production-based Emissions of CO2", 
+         caption = "\n\nSource: Our World in Data \n https://ourworldindata.org/co2-emissions") +
     scale_x_continuous(breaks = seq(1959,2020,5), limits = c(1959,2020))+
     scale_y_continuous(breaks = seq(5000,40000,5000), limits = c(5000,40000))+
     theme(panel.background = element_rect(fill = "#BFE3CD", 
@@ -192,8 +191,8 @@ globaltemp_plot2_func <- function(){
   p3 = temp_det1 %>% 
     ggplot(aes(x = Year , y =`Global Temperature (deg C)`)) + 
     geom_line(color = "red", size = 2) +
-    labs(title="Change in global temperature (deg C) from 1880 to 2020",
-         caption = "Source: Global Climate Change \n https://climate.nasa.gov/vital-signs/global-temperature/") +
+    labs(title="Change in Global Temperature (°C) from 1880 to 2020",
+         caption = "\n\nSource: Global Climate Change \n https://climate.nasa.gov/vital-signs/global-temperature/") +
     scale_x_continuous(breaks = seq(1880,2020,20), limits = c(1880,2020))+
     scale_y_continuous(breaks = seq(-0.5,1,0.1), limits = c(-0.5,1.1))+
     theme(panel.background = element_rect(fill = "#B0ECB0", colour = "#6D9EC1", size = 2, linetype = "solid"))
@@ -226,8 +225,8 @@ ui <- bootstrapPage(
                                         h5(strong(textOutput("clean_date_reactive")), align = "center"),
                                         # h6(textOutput("reactive_country_count"), align = "right"),
                                         br(),
-                                        plotOutput("yearly_plot", height="130px", width="100%"),
-                                        plotOutput("cumulative_plot", height="130px", width="100%"),
+                                        plotOutput("yearly_plot", height="200px", width="100%"),
+                                        plotOutput("cumulative_plot", height="200px", width="100%"),
                                         
                                         sliderTextInput("plot_date",
                                                         label = h5("Select Year"),
@@ -283,12 +282,12 @@ ui <- bootstrapPage(
              
              # Sameer Part
              tabPanel("Atmospheric CO2",
-                      titlePanel(""),
+                      titlePanel("Relationship between CO2 & Global Temperature"),
                       sidebarLayout(
                         position = "left", 
                         sidebarPanel(
                           width = 2,
-                          h6("Relationship between CO2 & Global Temperature")
+                          h6("CO2 & Global Temperature")
                         ),
                         mainPanel(
                           tabsetPanel(
@@ -399,10 +398,10 @@ server = function(input, output, session) {
                        fillOpacity = 0.2, color = co2_yearly_col, group = "CO2 (Yearly)", 
                        label = sprintf(
                          "<strong> %s (MT/year)</strong><br/>
-                                       CO2: %.0f<br/>
-                                       CO2 per capita: %s<br/>",
+                                       CO2: %s<br/>
+                                       CO2 per capita: %.2f<br/>",
                          reactive_db()$country,
-                         reactive_db()$co2,
+                         prettyNum(formatC(reactive_db()$co2, mode='integer'), big.mark = ','),
                          reactive_db()$co2_per_capita) %>% 
                          lapply(htmltools::HTML),
                        labelOptions = labelOptions(
@@ -417,9 +416,9 @@ server = function(input, output, session) {
                        fillOpacity = 0.2, color = co2_cumulative_col, group = "CO2 (Cumulative)",
                        label = sprintf(
                          "<strong> %s (MT)</strong><br/>
-                                       Cumulative CO2: %.0f <br/>",
+                                       Cumulative CO2: %s <br/>",
                          reactive_db()$country,
-                         reactive_db()$cumulative_co2) %>%
+                         prettyNum(formatC(reactive_db()$cumulative_co2, mode='integer'), big.mark=',')) %>%
                           lapply(htmltools::HTML),
                        labelOptions = labelOptions(
                          style = list("font-weight" = "normal",
