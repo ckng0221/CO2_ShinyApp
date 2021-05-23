@@ -397,7 +397,14 @@ ui <- bootstrapPage(
                           )
                         )
                       )
-                    )
+                    ),
+             tabPanel("Data",
+                      numericInput("maxrows", "Rows to show", 25),
+                      verbatimTextOutput("rawtable"),
+                      downloadButton("downloadCsv", "Download as CSV"),tags$br(),tags$br(),
+                      "Adapted from data collected, aggregated, and documented by ", tags$a(href="https://github.com/owid/co2-data/blob/master/owid-co2-data.csv", 
+                                                                         "Hannah Ritchie, Max Roser and Edouard Mathieu.")
+             )
              
              ))
  
@@ -597,6 +604,34 @@ server = function(input, output, session) {
 
   output$globaltemp_plot2 <- renderPlot({
     globaltemp_plot2_func()
+  })
+  
+  # output to download data
+  output$downloadCsv <- downloadHandler(
+    filename = function() {
+      paste("co2", ".csv", sep="")
+    },
+    content = function(file) {
+      co2_sub = co2 %>% select(c(country, Year, co2_per_capita,consumption_co2_per_capita,
+                                 cumulative_co2, cement_co2_per_capita, coal_co2_per_capita, 
+                                 flaring_co2_per_capita, gas_co2_per_capita,oil_co2_per_capita,
+                                 other_co2_per_capita))
+      names(co2_sub) = c("country", "year", "co2_per_capita", "Consumption_CO2_per_capita", "cumulative_co2", "co2_per_capita(Cement)",
+                         "co2_per_capita(Coal)", "co2_per_capita(Flaring)", "co2_per_capita(Gas)", "co2_per_capita(Oil)", "co2_per_capita(Other)")
+      write.csv(co2_sub, file)
+    }
+  )
+  
+  output$rawtable <- renderPrint({
+   co2_sub = co2 %>% select(c(country, Year, co2_per_capita,consumption_co2_per_capita,
+                            cumulative_co2, cement_co2_per_capita, coal_co2_per_capita, 
+                            flaring_co2_per_capita, gas_co2_per_capita,oil_co2_per_capita,
+                            other_co2_per_capita))
+  names(co2_sub) = c("country", "year", "co2_per_capita", "Consumption_CO2_per_capita", "cumulative_co2", "co2_per_capita(Cement)",
+                             "co2_per_capita(Coal)", "co2_per_capita(Flaring)", "co2_per_capita(Gas)", "co2_per_capita(Oil)", "co2_per_capita(Other)")
+    orig <- options(width = 1500)
+    print(tail(co2_sub, input$maxrows), row.names = FALSE)
+    options(orig)
   })
   
 }
