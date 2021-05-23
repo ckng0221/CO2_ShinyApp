@@ -369,12 +369,13 @@ server = function(input, output, session) {
   })
   
   output$reactive_co2 <- renderText({
-    paste0(paste("Yearly:    ", prettyNum(formatC(reactive_db_world()$co2, mode='integer'),
+    paste0(paste("Yearly: ", prettyNum(formatC(reactive_db_world()$co2, mode='integer'),
                                         big.mark=","), sep = '\n'), " mil tonnes/year")
   })
   
   output$reactive_co2_cumulative <- renderText({
-    paste0(paste("Cumulative:   ", prettyNum(reactive_db_world()$cumulative_co2, big.mark=","), sep='\n'), " mil tonnes")
+    paste0(paste("Cumulative: ", prettyNum(formatC(reactive_db_world()$cumulative_co2, mode='integer'),
+                                                     big.mark=","), sep='\n'), " mil tonnes")
   })
   
   
