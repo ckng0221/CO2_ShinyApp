@@ -78,7 +78,7 @@ cumulative_plot = function(df, plot_date) {
   plot_df = subset(df, Year<=plot_date)
   g1 = ggplot(plot_df, aes(x = Year, y = cumulative_co2, color='Global')) + 
     geom_line() + geom_point(size = 1, alpha = 0.8) +
-    ylab("CO2 (MT)") +  xlab("Date") + theme_bw() + labs(title="Cumulative") +
+    ylab("CO2 (million tonnes)") +  xlab("Date") + theme_bw() + labs(title="Cumulative") +
     scale_colour_manual(values=c(co2_yearly_col)) + 
     scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=12), 
@@ -91,7 +91,7 @@ yearly_plot = function(df, plot_date) {
   plot_df = subset(df, Year<=plot_date)
   g1 = ggplot(plot_df, aes(x = Year, y = co2, color='Global')) + 
     geom_line() + geom_point(size = 1, alpha = 0.8) +
-    ylab("CO2 (MT/year)") +  xlab("Date") + theme_bw() + labs(title="Yearly") +
+    ylab("CO2 (million tonnes/year)") +  xlab("Date") + theme_bw() + labs(title="Yearly") +
     scale_colour_manual(values=c(co2_yearly_col)) +
     scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=12), 
@@ -218,9 +218,10 @@ ui <- bootstrapPage(
                           absolutePanel(id = "controls", class = "panel panel-default",
                                         top = 75, left = 55, width = 300, fixed=TRUE,
                                         draggable = TRUE, height = "auto",
-                                        span(tags$i(h6("Global CO2 Emission")), style="color:#045a8d"),
-                                        h6(strong(textOutput("reactive_co2")), align = "center"),
-                                        h6(strong(textOutput("reactive_co2_cumulative")), align = "center"),
+                                        span(tags$i(h4("Global CO2 Emission")), style="color:#045a8d"),
+                                        br(),
+                                        h5(strong(textOutput("reactive_co2")), align = "center"),
+                                        h5(strong(textOutput("reactive_co2_cumulative")), align = "center"),
                                         br(),
                                         h5(strong(textOutput("clean_date_reactive")), align = "center"),
                                         # h6(textOutput("reactive_country_count"), align = "right"),
@@ -368,11 +369,12 @@ server = function(input, output, session) {
   })
   
   output$reactive_co2 <- renderText({
-    paste0(paste("Yearly:  ", prettyNum(reactive_db_world()$co2, big.mark=","), sep = '\n'), " MT/year")
+    paste0(paste("Yearly:    ", prettyNum(formatC(reactive_db_world()$co2, mode='integer'),
+                                        big.mark=","), sep = '\n'), " mil tonnes/year")
   })
   
   output$reactive_co2_cumulative <- renderText({
-    paste0(paste("Cumulative:  ", prettyNum(reactive_db_world()$cumulative_co2, big.mark=","), sep='\n'), " MT")
+    paste0(paste("Cumulative:   ", prettyNum(reactive_db_world()$cumulative_co2, big.mark=","), sep='\n'), " mil tonnes")
   })
   
   
@@ -397,16 +399,16 @@ server = function(input, output, session) {
       addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(co2)^(1/2.5),
                        fillOpacity = 0.2, color = co2_yearly_col, group = "CO2 (Yearly)", 
                        label = sprintf(
-                         "<strong> %s (MT/year)</strong><br/>
-                                       CO2: %s<br/>
-                                       CO2 per capita: %.2f<br/>",
+                         "<strong>%s</strong><br/>
+                                       CO2: <strong>%s mil tonnes/year</strong><br/>
+                                       CO2 per capita: <strong>%.2f tonnes/year</strong><br/>",
                          reactive_db()$country,
                          prettyNum(formatC(reactive_db()$co2, mode='integer'), big.mark = ','),
                          reactive_db()$co2_per_capita) %>% 
                          lapply(htmltools::HTML),
                        labelOptions = labelOptions(
                          style = list("font-weight" = "normal",
-                                      padding = "3px 8px",
+                                      padding = "4px 8px",
                                       "color" = co2_yearly_col),
                          textsize = "15px",
                          direction = "auto")) %>%
@@ -415,14 +417,14 @@ server = function(input, output, session) {
       addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(cumulative_co2)^(1/3),
                        fillOpacity = 0.2, color = co2_cumulative_col, group = "CO2 (Cumulative)",
                        label = sprintf(
-                         "<strong> %s (MT)</strong><br/>
-                                       Cumulative CO2: %s <br/>",
+                         "<strong>%s</strong><br/>
+                                       Cumulative CO2: <strong>%s mil tonnes</strong><br/>",
                          reactive_db()$country,
                          prettyNum(formatC(reactive_db()$cumulative_co2, mode='integer'), big.mark=',')) %>%
                           lapply(htmltools::HTML),
                        labelOptions = labelOptions(
                          style = list("font-weight" = "normal",
-                                      padding = "3px 8px",
+                                      padding = "4px 8px",
                                       "color" = co2_cumulative_col),
                          textsize = "15px",
                          direction = "auto"))
@@ -442,7 +444,7 @@ server = function(input, output, session) {
     data_long[which(data_long$Year>=input$minimum_year),] %>% filter(country == input$country) %>% 
       
       ggplot(aes(x=Year, y=emission_per_capita, fill=reorder(sources, -emission_per_capita))) +
-      ylab(label = 'CO2 Emission per capita (MT)') +
+      ylab(label = 'CO2 Emission per capita (tonnes)') +
       geom_area()+
       labs(fill = "Sources") +
       theme_bw() + 
@@ -498,7 +500,7 @@ server = function(input, output, session) {
       
       ggplot(aes(x = Year, y = Emission, color = Record)) +
       geom_line(size = 2) +
-      ylab(label = 'CO2 Emission per capita (MT)') +
+      ylab(label = 'CO2 Emission per capita (tonnes)') +
       scale_color_discrete(name = 'Emission Type') +
       theme_bw() + 
       theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10))
