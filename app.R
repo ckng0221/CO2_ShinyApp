@@ -288,7 +288,10 @@ ui <- bootstrapPage(
                         position = "left", 
                         sidebarPanel(
                           width = 2,
-                          h6("CO2 & Global Temperature")
+                          h6("How CO2 affect global temperature and mean sea level?"),
+                          radioButtons("radio", h3(""),
+                                              choices = list("Temperature" = 1, "Mean Sea Level" = 2)
+                                       ,selected = 1),
                         ),
                         mainPanel(
                           tabsetPanel(
