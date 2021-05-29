@@ -37,11 +37,17 @@ co2$flaring_co2_per_capita[is.na(co2$flaring_co2_per_capita)] <- 0
 co2$gas_co2_per_capita[is.na(co2$gas_co2_per_capita)] <- 0
 co2$oil_co2_per_capita[is.na(co2$oil_co2_per_capita)] <- 0
 co2$other_co2_per_capita[is.na(co2$other_co2_per_capita)] <- 0
-data_long <- gather(co2, sources, emission_per_capita, cement_co2_per_capita:other_co2_per_capita, factor_key=TRUE)
+names(co2)[names(co2) == "cement_co2_per_capita"] <- "Cement"
+names(co2)[names(co2) == "coal_co2_per_capita"] <- "Coal"
+names(co2)[names(co2) == "flaring_co2_per_capita"] <- "Flaring"
+names(co2)[names(co2) == "gas_co2_per_capita"] <- "Gas"
+names(co2)[names(co2) == "oil_co2_per_capita"] <- "Oil"
+names(co2)[names(co2) == "other_co2_per_capita"] <- "Other"
+data_long <- gather(co2, sources, emission_per_capita, Cement:Other, factor_key=TRUE)
 data2_long<- gather(data_long, emission_type, annual_emission, co2, consumption_co2, factor_key=TRUE)
 intersect_country<-intersect(unique(co2$country),unique(con_pro$Country))
 data_long$color <- leaflet::colorFactor(
-  palette = "RdYlBu", domain = data_long$sources
+  palette = "PiYG", domain = data_long$sources
 )(data_long$sources)
 
 
@@ -257,8 +263,8 @@ ui <- bootstrapPage(
                                       value = 1970),
                           br(),
                           htmlOutput("selected_var"),
-                          br(),
-                          plotlyOutput('pie',width = "100%", height = "150%"),
+                         
+                          plotlyOutput('pie',width = "300%", height = "300%"),
                           sliderInput("pie_minimum_year",
                                       "Select year:",
                                       min = 1970,
@@ -541,16 +547,16 @@ server = function(input, output, session) {
   #    xlim(0.5,2.5)+
   #    theme_void()
   #   )
-  
+
   output$pie <- renderPlotly(
-    
-    data_long %>% 
+
+    data_long %>%
       filter(country == input$country, Year<=input$pie_minimum_year, emission_per_capita!=0) %>%
       group_by(sources)%>%
       mutate(cumsum=cumsum(emission_per_capita))%>%
       filter(Year==input$pie_minimum_year)%>%
-      plot_ly(labels = ~sources, values = ~cumsum, marker = list(colors=~color)) %>% 
-      add_pie(hole = 0.6)%>% 
+      plot_ly(labels = ~sources, values = ~cumsum, marker = list(colors=~color)) %>%
+      add_pie(hole = 0.6)%>%
       layout(title = " CUMULATIVE PROPORTION OF CO2 EMISSION SOURCES",  showlegend = T,
              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
              yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
@@ -563,8 +569,10 @@ server = function(input, output, session) {
                b=10,
                t=40,
                pad=5)
-     
+
   ))
+  
+
 
   
   output$percountry = renderPlotly(
