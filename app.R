@@ -400,8 +400,8 @@ ui <- bootstrapPage(
                                      strong(":: Summary Text"),
                                      h5("The largest sources of cumulative emission displayed in text for selected country."),
                                      strong(":: Play Button for Cumulative Proportion"),
-                                     h5("This play button is associated only with donut chart on [Cumulative Proportion of CO2 Emission Sources]. Click the play button to see 
-                                        how the cumulative CO2 emission proportion from each sources changes across the year on selected country.")
+                                     h5("This play button is associated only with bar chart for [Cumulative Percentage of CO2 Emission by Sources]. Click the play button to see 
+                                        how the cumulative CO2 emission percentages change across the year on selected country.")
                                      )
                           )
                         )
@@ -537,41 +537,36 @@ server = function(input, output, session) {
     
   )
   
-  # output$pie <- renderPlot(
-  #  data_long %>% filter(country == input$country, Year==2019, emission_per_capita!=0) %>%
-  #  ggplot(aes(x=2, y=emission_per_capita, fill=reorder(sources, -emission_per_capita))) +
-  #    geom_bar(stat="identity", color="grey") +
-  #    geom_text(aes(label = paste0((round(((emission_per_capita/sum(emission_per_capita))*100),digits=1)), "%")), position = position_stack(vjust=0.5))+
-  #    coord_polar(theta="y", start=0) +
-  #    labs(fill = "Sources") +
-  #    xlim(0.5,2.5)+
-  #    theme_void()
-  #   )
 
-  output$pie <- renderPlotly(
+ output$pie <- renderPlotly(
 
     data_long %>%
       filter(country == input$country, Year<=input$pie_minimum_year, emission_per_capita!=0) %>%
       group_by(sources)%>%
       mutate(cumsum=cumsum(emission_per_capita))%>%
       filter(Year==input$pie_minimum_year)%>%
-      plot_ly(labels = ~sources, values = ~cumsum, marker = list(colors=~color)) %>%
-      add_pie(hole = 0.6)%>%
-      layout(title = " CUMULATIVE PROPORTION OF CO2 EMISSION SOURCES",  showlegend = T,
-             xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-             yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-             autosize=F,
-             width=500,
-             height=330,
-             margin=list(
-               l=50,
-               r=50,
-               b=10,
-               t=40,
-               pad=5)
-
-  ))
-  
+      ungroup(sources)%>%
+      mutate(pect=round((cumsum/sum(cumsum))*100,digits=2))%>%
+      plot_ly(x = ~pect,
+        y=  ~reorder(sources,pect),
+        marker = list(color="rgb(207,181,59)"),
+        type='bar',
+        orientation="h"
+    )%>%
+    layout(title = " CUMULATIVE PERCENTAGE OF CO2 EMISSION",  showlegend = F,
+                      xaxis = list(title="Cumulative percentage (%)",showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                      yaxis = list(title="",showgrid = FALSE, zeroline = FALSE, showticklabels = T),
+                      autosize=F,
+                      width=500,
+                      height=370,
+                      margin=list(
+                        l=50,
+                        r=50,
+                        b=20,
+                        t=40,
+                        pad=5)
+    )
+  )
 
 
   
