@@ -148,6 +148,30 @@ co2_ppm <- co2_ppm %>%
 co2_ppm <- co2_ppm %>%
             rename('Year'=year)
 
+# Relationship chart ================================================
+SL<-read.csv("SeaLevelRiseYearly.csv")
+co2_details1 <- co2 %>% 
+  filter(country == 'World', Year >= 1993) %>%   
+  select(c(Year, co2)) 
+
+temp_co2<-left_join(co2_details1, temp_det1, by="Year")
+temp_co2<-left_join(temp_co2, SL, by="Year")
+
+ay <- list(
+  tickfont = list(color = "green"),
+  overlaying = "y",
+  side = "right",
+  title = "Global Temperature (deg C)"
+)
+ay1 <- list(
+  tickfont = list(color = "green"),
+  overlaying = "y",
+  side = "right",
+  title = "Global Mean Sea Level"
+)
+
+
+
 # ------ Graphs --------
 
 # Graph 1 : P1 & P2
@@ -295,12 +319,17 @@ ui <- bootstrapPage(
                         sidebarPanel(
                           width = 2,
                           h6("How CO2 affect global temperature and mean sea level?"),
-                          radioButtons("radio", h3(""),
+                          radioButtons("relationship", h3(""),
                                               choices = list("Temperature" = 1, "Mean Sea Level" = 2)
                                        ,selected = 1),
                         ),
                         mainPanel(
                           tabsetPanel(
+                            # Tab 
+                            tabPanel("Relationship",
+                                     br(),
+                            plotlyOutput("relationshipchart_temp"),
+                            plotlyOutput("relationshipchart_GMSL")),
                               # Tab 1
                               tabPanel("CO2 Concentration vs. CO2 Emission",
                                        h6(
@@ -334,6 +363,8 @@ ui <- bootstrapPage(
                                        ),
                                        br(),
                                        plotOutput('globaltemp_plot2'))
+                              
+                              
                           )
                         ))),
              
@@ -612,6 +643,30 @@ server = function(input, output, session) {
     globaltemp_plot2_func()
   })
   
+  output$relationshipchart_temp <- renderPlotly({
+    
+      fig <- plot_ly(temp_co2)
+      fig <- fig %>% add_trace(x = ~Year, y = ~co2,type="bar", name = "co2 emission (ppm)")
+      fig <- fig %>% add_lines(x = ~Year, y = ~`Global Temperature (deg C)`, name = "Global Temperature (deg C)", yaxis = "y2")
+      fig <- fig %>% layout(
+        title = "Relationship between co2 Emission and Global Temperature", yaxis2 = ay,
+        xaxis = list(title="Year")
+      )
+      fig
+  })
+     
+      output$relationshipchart_GMSL <- renderPlotly({
+      fig1 <- plot_ly(temp_co2)
+      fig1 <- fig1 %>% add_trace(x = ~Year, y = ~co2,type="bar", name = "co2 emission (ppm)")
+      fig1 <- fig1 %>% add_lines(x = ~Year, y = ~GMSL, name = "Global Mean Sea Level", yaxis = "y2")
+      fig1 <- fig1 %>% layout(
+        title = "Relationship between co2 Emission and Global Mean Sea Level", yaxis2 = ay1,
+        xaxis = list(title="Year")
+      )
+      fig1
+   
+  })
+  
   # output to download data
   output$downloadCsv <- downloadHandler(
     filename = function() {
@@ -646,4 +701,5 @@ server = function(input, output, session) {
 shinyApp(ui, server)
 #library(rsconnect)
 #deployApp(account="vac-lshtm")
+
 
