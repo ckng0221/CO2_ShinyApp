@@ -444,14 +444,32 @@ ui <- bootstrapPage(
                         )
                       )
                     ),
+             # Download CSV Data Tab
              tabPanel("Data",
-                      h5(HTML("This page is to download the raw CO<sub>2</sub> dataset in CSV format.")),
+                      h2("Datasets"),
+                      HTML("This page is to download the dependency datasets of CO<sub>2</sub> in CSV format.<br>"),
+                      # CO2 Data
+                      HTML("<h3>CO<sub>2</sub> Dataset</h3>"),
+                      numericInput("maxrows", "Rows to show", 25),
+                      verbatimTextOutput("rawtable"),
                       "Adapted from data collected, aggregated, and documented by ", 
                       tags$a(href="https://github.com/owid/co2-data/blob/master/owid-co2-data.csv", 
                              "Hannah Ritchie, Max Roser and Edouard Mathieu."),
-                      numericInput("maxrows", "Rows to show", 25),
-                      verbatimTextOutput("rawtable"),
                       downloadButton("downloadCsv", "Download as CSV"),tags$br(),tags$br(),
+                      
+                      # Global Temperature Data
+                      HTML("<h3>Global Temperature Dataset</h3>"),
+                      numericInput("maxrows", "Rows to show", 25),
+                      verbatimTextOutput("rawtable2"),
+                      downloadButton("downloadCsv2", "Download as CSV"),tags$br(),tags$br(),
+                      
+                      # Mean Sea Level
+                      HTML("<h3>Mean Sea Level Dataset</h3>"),
+                      numericInput("maxrows", "Rows to show", 25),
+                      verbatimTextOutput("rawtable3"),
+                      downloadButton("downloadCsv3", "Download as CSV"),tags$br(),tags$br(),                   
+                      
+                      
              ),
              # About tab
              tabPanel("About",
@@ -722,6 +740,48 @@ server = function(input, output, session) {
     print(head(co2, input$maxrows), row.names = FALSE) # CK modified
     options(orig)
   })
+  
+  # Global Temperature Dataset
+  output$downloadCsv2 <- downloadHandler(
+    filename = function() {
+      paste("temp", ".csv", sep="")
+    },
+    content = function(file) {
+      temp_sub = temperature %>% select(Year, No_Smoothing)
+      names(temp_sub) = c("Year","Temp")
+      write.csv(temp_sub, file)
+    }
+  )
+  
+  output$rawtable2 <- renderPrint({
+    temp_sub = temperature %>% select(Year, No_Smoothing)
+    names(temp_sub) = c("Year","Temp")
+    orig <- options(width = 1500)
+    print(tail(temp_sub, input$maxrows), row.names = FALSE)
+    options(orig)
+  })
+  
+  # GMSL Mean Sea Level
+  output$downloadCsv3 <- downloadHandler(
+    filename = function() {
+      paste("co2", ".csv", sep="")
+    },
+    content = function(file) {
+      SL_sub = SL %>% select(Year, GMSL)
+      names(SL_sub) = c("Year","MSL")
+      write.csv(SL_sub, file)
+    }
+  )
+  
+  output$rawtable3 <- renderPrint({
+    SL_sub = SL %>% select(Year, GMSL)
+    names(SL_sub) = c("Year","MSL")
+    orig <- options(width = 1500)
+    print(tail(SL_sub, input$maxrows), row.names = FALSE)
+    options(orig)
+  })
+  
+  
   
 }
 
