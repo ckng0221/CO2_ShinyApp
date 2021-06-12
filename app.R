@@ -476,7 +476,7 @@ ui <- bootstrapPage(
              # About tab
              tabPanel("About",
                       HTML("<h2>About</h2><br>
-                      This Shiny web app is developed for the Group Project of University of Malaya 
+                      This Shiny App is developed for the Group Project of University of Malaya 
                       <b>WQD7001 Principles of Data Science</b> by <b>Group 10</b> for <b>2021 March Semester</b>.<br><br>
                       Members of Group 10:
                       <ul>
