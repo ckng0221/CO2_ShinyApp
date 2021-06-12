@@ -235,7 +235,7 @@ globaltemp_plot2_func <- function(){
 
 #========== SHINY UI ==========
 ui <- bootstrapPage(
-  tags$head(includeHTML("gtag.html")),
+  # tags$head(includeHTML("gtag.html")),
   navbarPage(theme = shinytheme("cosmo"), collapsible = FALSE,
              HTML('<a style="text-decoration:none;cursor:default;color:#FFFFFF;" 
                   class="active" href="#">CO<sub>2</sub> Tracker</a>'), id="nav",
