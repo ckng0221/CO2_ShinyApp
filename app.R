@@ -487,6 +487,10 @@ ui <- bootstrapPage(
                           <li>Anere Goodness Ayobami  (S2039808)</li>
                         </b>
                       </ul>
+                      <br>
+                      For the all the data and Shiny App can be found on GitHub as follows:<br>
+                      <a href='https://github.com/ckng0221/CO2_ShinyApp'>
+                      https://github.com/ckng0221/CO2_ShinyApp</a>
                            "),
              )
              
