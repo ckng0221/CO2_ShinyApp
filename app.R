@@ -29,8 +29,8 @@ co2_percapita_col <- "#eb3443"
 co2_html <- HTML(paste0("CO",tags$sub("2 ")))
 
 # import and process data for dashboard (YJ)----------------------------------------------------------------------
-co2<-read.csv("co2.csv")
-con_pro<-read.csv('con_pro.csv')
+co2<-read.csv("input_data/co2.csv")
+con_pro<-read.csv('input_data/con_pro.csv')
 co2$cement_co2_per_capita[is.na(co2$cement_co2_per_capita)] <- 0
 co2$coal_co2_per_capita[is.na(co2$coal_co2_per_capita)] <- 0
 co2$flaring_co2_per_capita[is.na(co2$flaring_co2_per_capita)] <- 0
@@ -132,7 +132,7 @@ co2_details <- co2 %>%
                 filter(country == 'World', Year >= 1959) %>% 
                 select(c(Year, country, co2))
 
-temperature <- read.csv("temperature.csv")
+temperature <- read.csv("input_data/temperature.csv")
 temp_detail <- temperature %>%
                 filter(Year >= 1880) %>% 
                 select(c(Year,No_Smoothing))
@@ -141,7 +141,7 @@ temp_det1 = temp_detail %>%
               na.omit(temp_detail) %>% 
               rename('Global Temperature (deg C)'=No_Smoothing)
 
-co2_ppm <-  read.csv("co2ppm.csv")
+co2_ppm <-  read.csv("input_data/co2ppm.csv")
 co2_ppm <- co2_ppm %>%
             filter(year >= 1959) %>%
             select(c(year,co2ppm))
@@ -149,7 +149,7 @@ co2_ppm <- co2_ppm %>%
             rename('Year'=year)
 
 # Relationship chart ================================================
-SL<-read.csv("SeaLevelRiseYearly.csv")
+SL<-read.csv("input_data/SeaLevelRiseYearly.csv")
 co2_details1 <- co2 %>% 
   filter(country == 'World', Year >= 1993) %>%   
   select(c(Year, co2)) 
@@ -254,7 +254,7 @@ ui <- bootstrapPage(
                                         h5(strong(textOutput("reactive_co2")), align = "center"),
                                         h5(strong(textOutput("reactive_co2_cumulative")), align = "center"),
                                         br(),
-                                        h5(strong(textOutput("clean_date_reactive")), align = "center"),
+                                        h3(strong(textOutput("clean_date_reactive")), align = "center"),
                                         # h6(textOutput("reactive_country_count"), align = "right"),
                                         br(),
                                         plotOutput("yearly_plot", height="200px", width="100%"),
@@ -455,6 +455,8 @@ ui <- bootstrapPage(
                       "Adapted from data collected, aggregated, and documented by ", 
                       tags$a(href="https://github.com/owid/co2-data/blob/master/owid-co2-data.csv", 
                              "Hannah Ritchie, Max Roser and Edouard Mathieu."),
+                      br(),
+                      br(),
                       downloadButton("downloadCsv", "Download as CSV"),tags$br(),tags$br(),
                       
                       # Global Temperature Data
@@ -714,7 +716,7 @@ server = function(input, output, session) {
   # output to download data
   output$downloadCsv <- downloadHandler(
     filename = function() {
-      paste("co2", ".csv", sep="")
+      paste("input_data/co2", ".csv", sep="")
     },
     content = function(file) {
       # co2_sub = co2 %>% select(c(country, Year, co2_per_capita,consumption_co2_per_capita,
@@ -744,7 +746,7 @@ server = function(input, output, session) {
   # Global Temperature Dataset
   output$downloadCsv2 <- downloadHandler(
     filename = function() {
-      paste("temp", ".csv", sep="")
+      paste("input_data/temp", ".csv", sep="")
     },
     content = function(file) {
       temp_sub = temperature %>% select(Year, No_Smoothing)
@@ -764,7 +766,7 @@ server = function(input, output, session) {
   # GMSL Mean Sea Level
   output$downloadCsv3 <- downloadHandler(
     filename = function() {
-      paste("SeaLevelRiseYearly", ".csv", sep="")
+      paste("input_data/SeaLevelRiseYearly", ".csv", sep="")
     },
     content = function(file) {
       SL_sub = SL %>% select(Year, GMSL)
