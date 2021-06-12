@@ -26,7 +26,7 @@ if(!require(ggplot2)) install.packages("ggplot2", repos = "http://cran.us.r-proj
 co2_yearly_col <- "#014419"
 co2_cumulative_col <- "#011f44"
 co2_percapita_col <- "#eb3443"
-
+co2_html <- HTML(paste0("CO",tags$sub("2 ")))
 
 # import and process data for dashboard (YJ)----------------------------------------------------------------------
 co2<-read.csv("co2.csv")
@@ -77,14 +77,14 @@ co2_pal <- colorBin("Greens", domain=co2_large_countries$co2, bins = bins)
 #World subset
 co2_world <- co2 %>% filter(country=='World')
 
-
+library(ggtext)
 #===== Plotting Functions ========
 # Cumulative plot
 cumulative_plot = function(df, plot_date) {
   plot_df = subset(df, Year<=plot_date)
   g1 = ggplot(plot_df, aes(x = Year, y = cumulative_co2, color='Global')) + 
     geom_line() + geom_point(size = 1, alpha = 0.8) +
-    ylab("CO2 (mil tonnes)") +  xlab("Date") + theme_bw() + labs(title="Cumulative") +
+    ylab(bquote(~CO[2]~ "(mil tonnes)")) +  xlab("Date") + theme_bw() + labs(title="Cumulative") +
     scale_colour_manual(values=c(co2_yearly_col)) + 
     scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=12), 
@@ -97,7 +97,7 @@ yearly_plot = function(df, plot_date) {
   plot_df = subset(df, Year<=plot_date)
   g1 = ggplot(plot_df, aes(x = Year, y = co2, color='Global')) + 
     geom_line() + geom_point(size = 1, alpha = 0.8) +
-    ylab("CO2 (mil tonnes/year)") +  xlab("Date") + theme_bw() + labs(title="Yearly") +
+    ylab(bquote(~CO[2]~ '(mil tonnes/year)')) +  xlab("Date") + theme_bw() + labs(title="Yearly") +
     scale_colour_manual(values=c(co2_yearly_col)) +
     scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=12), 
@@ -114,13 +114,13 @@ map_plotting <- function(){
     addTiles() %>% 
     addLayersControl(
       position = "bottomright",
-      overlayGroups = c("CO2 (Yearly)", "CO2 (Cumulative)"), 
+      overlayGroups = c(HTML("CO<sub>2</sub> (Yearly)"), HTML("CO<sub>2</sub> (Cumulative)")), 
       options = layersControlOptions(collapsed = FALSE)) %>% 
-    hideGroup("CO2 (Cumulative)") %>%
+    hideGroup(HTML("CO<sub>2</sub> (Cumulative)")) %>%
     addProviderTiles(providers$CartoDB.Positron) %>%
     fitBounds(~-100,-60,~60,70) %>%
     addLegend("bottomright", pal = co2_pal, values = ~co2_large_countries$co2,
-              title = "<small>CO2 Production</small>") 
+              title = "<small>CO<sub>2</sub> Production <br>(mil tonnes/year)</small>") 
 return(basemap)
 }
 basemap<- map_plotting()
@@ -161,7 +161,7 @@ ay <- list(
   tickfont = list(color = "green"),
   overlaying = "y",
   side = "right",
-  title = "Global Temperature (deg C)"
+  title = "Global Temperature (°C)"
 )
 ay1 <- list(
   tickfont = list(color = "green"),
@@ -188,7 +188,7 @@ globaltemp_plot1_func <- function(){
   p1 <- co2_overyear %>% 
     ggplot(aes(x = Year , y =`CO2 (parts per million)`)) + 
     geom_line(color = "green", size = 2) +
-    labs(title="CO2 (PPM) Level in Atmosphere", 
+    labs(title=bquote(~CO[2]~ "(PPM) Level in Atmosphere"), 
          caption = "\n\nSource: : Global Monitoring Laboratory \n https://gml.noaa.gov/ccgg/trends/data.html") +
     scale_x_continuous(breaks = seq(1959,2020,5), limits = c(1959,2020))+
     scale_y_continuous(breaks = seq(300,420,20), limits = c(300,420))+
@@ -200,7 +200,7 @@ globaltemp_plot1_func <- function(){
   p2 <- co2_overyear %>%
     ggplot(aes(x = Year , y =`CO2 Emission (million tonnes per year)`)) + 
     geom_line(color = "blue", size = 2) +
-    labs(title="Annual Production-based Emissions of CO2", 
+    labs(title=bquote("Annual Production-based Emissions of " ~CO[2]), 
          caption = "\n\nSource: Our World in Data \n https://ourworldindata.org/co2-emissions") +
     scale_x_continuous(breaks = seq(1959,2020,5), limits = c(1959,2020))+
     scale_y_continuous(breaks = seq(5000,40000,5000), limits = c(5000,40000))+
@@ -237,10 +237,10 @@ ui <- bootstrapPage(
   tags$head(includeHTML("gtag.html")),
   navbarPage(theme = shinytheme("flatly"), collapsible = FALSE,
              HTML('<a style="text-decoration:none;cursor:default;color:#FFFFFF;" 
-                  class="active" href="#">CO2 Tracker</a>'), id="nav",
-             windowTitle = "CO2 TRACKER",
+                  class="active" href="#">CO<sub>2</sub> Tracker</a>'), id="nav",
+             windowTitle = HTML("CO<sub>2</sub> TRACKER"),
              # Global Map Tab
-             tabPanel("CO2 World",
+             tabPanel(HTML("CO<sub>2</sub> World"),
                       div(class="outer",
                           tags$head(includeCSS("styles.css")),
                           leafletOutput("mymap", width="100%", height="100%"),
@@ -248,7 +248,7 @@ ui <- bootstrapPage(
                           absolutePanel(id = "controls", class = "panel panel-default",
                                         top = 75, left = 55, width = 300, fixed=TRUE,
                                         draggable = TRUE, height = "auto",
-                                        span(tags$i(h4("Global CO2 Emission")), style="color:#045a8d"),
+                                        span(tags$i(h4(HTML("Global CO<sub>2</sub> Emission"))), style="color:#045a8d"),
                                         br(),
                                         h5(strong(textOutput("reactive_co2")), align = "center"),
                                         h5(strong(textOutput("reactive_co2_cumulative")), align = "center"),
@@ -302,23 +302,23 @@ ui <- bootstrapPage(
                         mainPanel(
                           tabsetPanel(
                             tabPanel("Sources of Emission", 
-                                     h6("PRIMARY SOURCES OF CO2 EMISSION PER CAPITA"),
+                                     h6(HTML("PRIMARY SOURCES OF CO<sub>2</sub> EMISSION PER CAPITA")),
                                      plotlyOutput("plot")),
                             tabPanel("Type of Emission", 
-                                     h6("TYPE OF CO2 EMISSION"),
+                                     h6(HTML("TYPE OF CO<sub>2</sub> EMISSION")),
                                      plotlyOutput('percountry'))
                           )
                         )
                       )),
              
              # Sameer Part
-             tabPanel("Atmospheric CO2",
-                      titlePanel("Relationship between CO2 & Global Temperature"),
+             tabPanel(HTML("Atmospheric CO<sub>2</sub>"),
+                      titlePanel(HTML("Relationship between CO<sub>2</sub> & Global Temperature")),
                       sidebarLayout(
                         position = "left", 
                         sidebarPanel(
                           width = 2,
-                          h6("How CO2 affect global temperature and mean sea level?"),
+                          h6(HTML("How CO<sub>2</sub> affect global temperature and mean sea level?")),
                           radioButtons("relationship", h3(""),
                                               choices = list("Temperature" = 1, "Mean Sea Level" = 2)
                                        ,selected = 1),
@@ -331,30 +331,30 @@ ui <- bootstrapPage(
                             plotlyOutput("relationshipchart_temp"),
                             plotlyOutput("relationshipchart_GMSL")),
                               # Tab 1
-                              tabPanel("CO2 Concentration vs. CO2 Emission",
-                                       h6(
-                                          "The atmospheric level of carbon dioxide has been steadily rising since the 1960's. 
+                              tabPanel(HTML("CO<sub>2</sub> Concentration vs. CO<sub>2</sub> Emission"),
+                                       h6(HTML(
+                                          "The atmospheric level of carbon dioxide (CO<sub>2</sub>) has been steadily rising since the 1960's. 
                                           In 2019, carbon dioxide levels reached 411 parts per million, 
                                           in comparison to 1960 levels which stood at about 317 parts per million. 
                                           Projections for 2020 show concentrations of carbon dioxide have increased to 414 parts per million. 
                                           Emissions of carbon dioxide largely come from human activities such as burning fossil fuels and deforestation. 
-                                          Data is taken from Mauna Loa CO2 annual mean data. Data has been measured at Mauna Loa Observatory, 
+                                          Data is taken from Mauna Loa CO<sub>2</sub> annual mean data. Data has been measured at Mauna Loa Observatory, 
                                           Hawaii as it constitutes the longest record of direct carbon dioxide measurements in the atmosphere."
-                                       ),
-                                       h6(
+                                       )),
+                                       h6(HTML(
                                           "Global climate change is mostly triggered by
                                           carbon dioxide emissions.
                                           It’s widely recognized that to avoid the worst impacts of climate change, 
-                                          the world needs to urgently reduce emissions. This graph illustrates the change in Carbon Dioxide (CO2)
-                                          emission based on annual production from 1959 to 2019. CO2 emissions data from Our World 
+                                          the world needs to urgently reduce emissions. This graph illustrates the change in Carbon Dioxide (CO<sub>2</sub>)
+                                          emission based on annual production from 1959 to 2019. CO<sub>2</sub> emissions data from Our World 
                                           in Data and the Global Carbon Project."
-                                       ),
+                                       )),
                                        br(),
                                        plotOutput("globaltemp_plot1")),
                               # Tab 2
                               tabPanel("Global Temperature",
                                        h6(
-                                       "This graph illustrates the change in global temperature (deg C) from 1880 to 2019. 
+                                       "This graph illustrates the change in global temperature (°C) from 1880 to 2019. 
                                        Nineteen of the warmest years have occurred since 2000, with the exception of 1998. 
                                        The year 2020 tied with 2016 for the warmest year on record since record-keeping began in 1880."
                                        ),
@@ -369,28 +369,30 @@ ui <- bootstrapPage(
                         ))),
              
              tabPanel("User Guide",
-                      titlePanel("Global CO2 Tracker"), 
+                      titlePanel(HTML(paste(co2_html, "Tracker"))),
                       
-                      h5("Global CO2 Tracker (GCT) is an online web app that provides data and dashboard for monitoring global CO2 emission. It uses data to illuminate the state of CO2 level worldwide and tells the stories of how CO2 contributed by each countries. GCT allows anyone to access information about where and how CO2 emission are changing around the world.
-"),
+                      h5(HTML("Global CO<sub>2</sub> Tracker (GCT) is an online web app that provides data and dashboard for monitoring 
+                              global CO<sub>2</sub> emission. It uses data to illuminate the state of CO<sub>2</sub> level worldwide and tells the stories of 
+                              how CO<sub>2</sub> contributed by each countries. GCT allows anyone to access information about where and 
+                              how CO<sub>2</sub> emission are changing around the world.")),
                       br(),
                       sidebarLayout(
                         position = "left",
                         sidebarPanel(
                         
                         h4("Overview"),
-                        h5("The map & dashboards on GCT allow you to explore hundreds of spatial datasets that 
-                        help explain when, where and how CO2 emission are changing around the world."),
+                        h5(HTML("The map & dashboards on GCT allow you to explore hundreds of spatial datasets that 
+                        help explain when, where and how CO<sub>2</sub> emission are changing around the world.")),
                         
-                        h5(" The map tell a visual story about how CO2 emmission is changing in a particular place. 
-                          The dashboards for sources of CO2 emission help answer important questions about CO2 change in any country and enable you to view
-                           statistics through interactive charts and graphs."),
+                        h5(HTML(" The map tell a visual story about how CO<sub>2</sub> emmission is changing in a particular place. 
+                          The dashboards for sources of CO<sub>2</sub> emission help answer important questions about CO<sub>2</sub>
+                          change in any country and enable you to view statistics through interactive charts and graphs.")),
                        h5("Let's get started with our step-by-step instructions.") ),
                          
                       
                         mainPanel(
                           tabsetPanel(
-                            tabPanel("CO2 World Map", 
+                            tabPanel(HTML("CO<sub>2</sub> World Map"), 
                                      h3("Use the map"),
                                      h5("The map allows you to visualize and analyze spatial data. 
                                      Below you'll find key functionalities to help you explore the 
@@ -398,22 +400,22 @@ ui <- bootstrapPage(
                                      img(src = "co2worldmap_illustration.png", width = 1000),
                                      br(),
                                      br(),
-                                     strong(":: Yearly/ Cumulative CO2 Emission"),
-                                     h5("Select to display yearly or cumulative CO2 emission on the map. 
-                                        Yearly CO2 Emission is indicated by green bubble while cumulative CO2 Emission is indicated by blue bubble. 
-                                        The size of the bubble show the amount of CO2 emission."),
+                                     strong(HTML(":: Yearly/ Cumulative CO<sub>2</sub> Emission")),
+                                     h5(HTML("Select to display yearly or cumulative CO<sub>2</sub> emission on the map. 
+                                        Yearly CO<sub>2</sub> Emission is indicated by green bubble while cumulative CO<sub>2</sub> Emission is indicated by blue bubble. 
+                                        The size of the bubble show the amount of CO<sub>2</sub> emission.")),
                                      strong(":: Adjust Display Year"),
-                                     h5("Adjust the slider to select year for visualization.
+                                     h5(HTML("Adjust the slider to select year for visualization.
                                         Once a year range had been selected, visualization on the map will adjusted accordingly
-                                        with CO2 data up until the year selected."),
+                                        with CO<sub>2</sub> data up until the year selected.")),
                                      strong(":: Play Button"),
-                                     h5("Click the play button to see how CO2 emission changes across the year globally.")
+                                     h5(HTML("Click the play button to see how CO<sub>2</sub> emission changes across the year globally."))
                                      ),
                                      
                             tabPanel("Sources of Emission", 
                                      h3("Use the charts"),
-                                     h5("The charts allow you to visualize and analyze sources of CO2 emission. 
-                                     Below you'll find key functionalities to help you explore the charts."),
+                                     h5(HTML("The charts allow you to visualize and analyze sources of CO<sub>2</sub> emission. 
+                                     Below you'll find key functionalities to help you explore the charts.")),
                                      img(src = "dashboard_illustration.png", width = 1000),
                                      br(),
                                      br(),
@@ -421,18 +423,18 @@ ui <- bootstrapPage(
                                      h5("Select a country to further analyze on its sources of emission. All the display charts will be adjusted based on country selected.
                                         This country selection apply to all the charts in display."),
                                      strong(":: Adjust Display Year"),
-                                     h5("Adjust the slider to select year range for visualization.
+                                     h5(HTML("Adjust the slider to select year range for visualization.
                                         Once a year range had been selected, visualization on the charts will adjusted accordingly
-                                        with CO2 data.
-                                        This year slider only apply to chart on [sources of emission] and [type of emission]."),
+                                        with CO<sub>2</sub> data.
+                                        This year slider only apply to chart on [sources of emission] and [type of emission].")),
                                      strong(":: Select Type of Charts"),
                                      h5("Switch between different tabs to view sources of emission or type of emission (production emission vs consumption emission) 
                                         for a selected country."),
                                      strong(":: Summary Text"),
                                      h5("The largest sources of cumulative emission displayed in text for selected country."),
                                      strong(":: Play Button for Cumulative Proportion"),
-                                     h5("This play button is associated only with bar chart for [Cumulative Percentage of CO2 Emission by Sources]. Click the play button to see 
-                                        how the cumulative CO2 emission percentages change across the year on selected country.")
+                                     h5(HTML("This play button is associated only with bar chart for [Cumulative Percentage of CO<sub>2</sub> Emission by Sources]. Click the play button to see 
+                                        how the cumulative CO<sub>2</sub> emission percentages change across the year on selected country."))
                                      )
                           )
                         )
@@ -513,11 +515,11 @@ server = function(input, output, session) {
 
       # Yearly
       addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(co2)^(1/2.5),
-                       fillOpacity = 0.2, color = co2_yearly_col, group = "CO2 (Yearly)", 
+                       fillOpacity = 0.2, color = co2_yearly_col, group = HTML("CO<sub>2</sub> (Yearly)"), 
                        label = sprintf(
                          "<strong>%s</strong><br/>
-                                       CO2: <strong>%s mil tonnes/year</strong><br/>
-                                       CO2 per capita: <strong>%.2f tonnes/year</strong><br/>",
+                                       CO<sub>2</sub>: <strong>%s mil tonnes/year</strong><br/>
+                                       CO<sub>2</sub> per capita: <strong>%.2f tonnes/year</strong><br/>",
                          reactive_db()$country,
                          prettyNum(formatC(reactive_db()$co2, mode='integer'), big.mark = ','),
                          reactive_db()$co2_per_capita) %>% 
@@ -531,10 +533,10 @@ server = function(input, output, session) {
       
       # Cumulative
       addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(cumulative_co2)^(1/3),
-                       fillOpacity = 0.2, color = co2_cumulative_col, group = "CO2 (Cumulative)",
+                       fillOpacity = 0.2, color = co2_cumulative_col, group = HTML("CO<sub>2</sub> (Cumulative)"),
                        label = sprintf(
                          "<strong>%s</strong><br/>
-                                       Cumulative CO2: <strong>%s mil tonnes</strong><br/>",
+                                       Cumulative CO<sub>2</sub>: <strong>%s mil tonnes</strong><br/>",
                          reactive_db()$country,
                          prettyNum(formatC(reactive_db()$cumulative_co2, mode='integer'), big.mark=',')) %>%
                           lapply(htmltools::HTML),
@@ -560,7 +562,7 @@ server = function(input, output, session) {
     data_long[which(data_long$Year>=input$minimum_year),] %>% filter(country == input$country) %>% 
       
       ggplot(aes(x=Year, y=emission_per_capita, fill=reorder(sources, -emission_per_capita))) +
-      ylab(label = 'CO2 Emission per capita (tonnes)') +
+      ylab(label = HTML('CO<sub>2</sub> Emission per capita (tonnes)')) +
       geom_area()+
       labs(fill = "Sources") +
       theme_bw() + 
@@ -584,7 +586,7 @@ server = function(input, output, session) {
         type='bar',
         orientation="h"
     )%>%
-    layout(title = " CUMULATIVE PERCENTAGE OF CO2 EMISSION",  showlegend = F,
+    layout(title = HTML(" CUMULATIVE PERCENTAGE OF CO<sub>2</sub> EMISSION"),  showlegend = F,
                       xaxis = list(title="Cumulative percentage (%)",showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                       yaxis = list(title="",showgrid = FALSE, zeroline = FALSE, showticklabels = T),
                       autosize=F,
@@ -613,7 +615,7 @@ server = function(input, output, session) {
       
       ggplot(aes(x = Year, y = Emission, color = Record)) +
       geom_line(size = 2) +
-      ylab(label = 'CO2 Emission per capita (tonnes)') +
+      ylab(label = HTML('CO<sub>2</sub> Emission per capita (tonnes)')) +
       scale_color_discrete(name = 'Emission Type') +
       theme_bw() + 
       theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10))
@@ -631,7 +633,9 @@ server = function(input, output, session) {
       mutate(pect=round((cumsum/sum(cumsum))*100,digits=2))
       max_sources<-perct$sources[which.max(perct$pect)]
       max_perct<-perct$pect[which.max(perct$pect)]
-    paste("As of 2019, ", "<b>",max_perct,"</b>", "% of co2 was contributed by ","<b>",sub("_.*", "", max_sources),"</b>"," as the largest sources of co2 emission in", "<b>",input$country,"</b>",".")
+    paste("As of 2019, ", "<b>",max_perct,"</b>", "% of CO<sub>2</sub> was contributed by ",
+          "<b>",sub("_.*", "", max_sources),"</b>"," as the largest sources of CO<sub>2</sub> emission in",
+          "<b>",input$country,"</b>",".")
   })
   
   
@@ -646,10 +650,10 @@ server = function(input, output, session) {
   output$relationshipchart_temp <- renderPlotly({
     
       fig <- plot_ly(temp_co2)
-      fig <- fig %>% add_trace(x = ~Year, y = ~co2,type="bar", name = "co2 emission (ppm)")
-      fig <- fig %>% add_lines(x = ~Year, y = ~`Global Temperature (deg C)`, name = "Global Temperature (deg C)", yaxis = "y2")
+      fig <- fig %>% add_trace(x = ~Year, y = ~co2,type="bar", name = HTML("CO<sub>2</sub> Emission (ppm)"))
+      fig <- fig %>% add_lines(x = ~Year, y = ~`Global Temperature (deg C)`, name = "Global Temperature (°C)", yaxis = "y2")
       fig <- fig %>% layout(
-        title = "Relationship between co2 Emission and Global Temperature", yaxis2 = ay,
+        title = HTML("Relationship between CO<sub>2</sub> Emission and Global Temperature"), yaxis2 = ay,
         xaxis = list(title="Year")
       )
       fig
@@ -657,10 +661,10 @@ server = function(input, output, session) {
      
       output$relationshipchart_GMSL <- renderPlotly({
       fig1 <- plot_ly(temp_co2)
-      fig1 <- fig1 %>% add_trace(x = ~Year, y = ~co2,type="bar", name = "co2 emission (ppm)")
+      fig1 <- fig1 %>% add_trace(x = ~Year, y = ~co2,type="bar", name = HTML("CO<sub>2</sub> Emission (ppm)"))
       fig1 <- fig1 %>% add_lines(x = ~Year, y = ~GMSL, name = "Global Mean Sea Level", yaxis = "y2")
       fig1 <- fig1 %>% layout(
-        title = "Relationship between co2 Emission and Global Mean Sea Level", yaxis2 = ay1,
+        title = HTML("Relationship between CO<sub>2</sub> Emission and Global Mean Sea Level"), yaxis2 = ay1,
         xaxis = list(title="Year")
       )
       fig1
