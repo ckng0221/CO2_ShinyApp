@@ -373,7 +373,7 @@ ui <- bootstrapPage(
                         ))),
              
              tabPanel("User Guide",
-                      titlePanel(HTML(paste(co2_html, "Tracker"))),
+                      titlePanel(HTML("CO<sub>2</sub> Tracker")),
                       
                       h5(HTML("Global CO<sub>2</sub> Tracker (GCT) is an online web app that provides data and dashboard for monitoring 
                               global CO<sub>2</sub> emission. It uses data to illuminate the state of CO<sub>2</sub> level worldwide and tells the stories of 
@@ -764,7 +764,7 @@ server = function(input, output, session) {
   # GMSL Mean Sea Level
   output$downloadCsv3 <- downloadHandler(
     filename = function() {
-      paste("co2", ".csv", sep="")
+      paste("SeaLevelRiseYearly", ".csv", sep="")
     },
     content = function(file) {
       SL_sub = SL %>% select(Year, GMSL)
