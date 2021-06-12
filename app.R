@@ -192,7 +192,7 @@ globaltemp_plot1_func <- function(){
          caption = "\n\nSource: : Global Monitoring Laboratory \n https://gml.noaa.gov/ccgg/trends/data.html") +
     scale_x_continuous(breaks = seq(1959,2020,5), limits = c(1959,2020))+
     scale_y_continuous(breaks = seq(300,420,20), limits = c(300,420))+
-    theme(panel.background = element_rect(fill = "#BFE3CD", 
+    theme(panel.background = element_rect(fill = "#dff0ef", 
                                           colour = "#6D9EC1", size = 2, 
                                           linetype = "solid"))
   
@@ -200,11 +200,11 @@ globaltemp_plot1_func <- function(){
   p2 <- co2_overyear %>%
     ggplot(aes(x = Year , y =`CO2 Emission (million tonnes per year)`)) + 
     geom_line(color = "blue", size = 2) +
-    labs(title=bquote("Annual Production-based Emissions of " ~CO[2]), 
+    labs(title=bquote("Annual Production-based Emissions of" ~CO[2]), 
          caption = "\n\nSource: Our World in Data \n https://ourworldindata.org/co2-emissions") +
     scale_x_continuous(breaks = seq(1959,2020,5), limits = c(1959,2020))+
     scale_y_continuous(breaks = seq(5000,40000,5000), limits = c(5000,40000))+
-    theme(panel.background = element_rect(fill = "#BFE3CD", 
+    theme(panel.background = element_rect(fill = "#dff0ef", 
                                           colour = "#6D9EC1",
                                           size = 2,
                                           linetype = "solid"))
@@ -225,7 +225,8 @@ globaltemp_plot2_func <- function(){
          caption = "\n\nSource: Global Climate Change \n https://climate.nasa.gov/vital-signs/global-temperature/") +
     scale_x_continuous(breaks = seq(1880,2020,20), limits = c(1880,2020))+
     scale_y_continuous(breaks = seq(-0.5,1,0.1), limits = c(-0.5,1.1))+
-    theme(panel.background = element_rect(fill = "#B0ECB0", colour = "#6D9EC1", size = 2, linetype = "solid"))
+    theme(panel.background = element_rect(fill = "#daf0e0", 
+                                          colour = "#6D9EC1", size = 2, linetype = "solid"))
   p3
 }
 
@@ -235,12 +236,12 @@ globaltemp_plot2_func <- function(){
 #========== SHINY UI ==========
 ui <- bootstrapPage(
   tags$head(includeHTML("gtag.html")),
-  navbarPage(theme = shinytheme("flatly"), collapsible = FALSE,
+  navbarPage(theme = shinytheme("cosmo"), collapsible = FALSE,
              HTML('<a style="text-decoration:none;cursor:default;color:#FFFFFF;" 
                   class="active" href="#">CO<sub>2</sub> Tracker</a>'), id="nav",
              windowTitle = HTML("CO<sub>2</sub> TRACKER"),
              # Global Map Tab
-             tabPanel(HTML("CO<sub>2</sub> World"),
+             tabPanel(HTML("Global CO<sub>2</sub>"),
                       div(class="outer",
                           tags$head(includeCSS("styles.css")),
                           leafletOutput("mymap", width="100%", height="100%"),
@@ -284,7 +285,8 @@ ui <- bootstrapPage(
                                       "Minimum year:",
                                       min = 1970,
                                       max = 2015,
-                                      value = 1970),
+                                      value = 1970,
+                                      sep = ""),
                           br(),
                           htmlOutput("selected_var"),
                          
@@ -297,7 +299,9 @@ ui <- bootstrapPage(
                                       # choices = c(1970:2019),
                                       # selected = 1970,
                                       # grid = FALSE,
-                                      animate=animationOptions(interval = 500, loop = FALSE))
+                                      animate=animationOptions(interval = 500, loop = FALSE),
+                                      sep = ""
+                                      )
                          ),
                         mainPanel(
                           tabsetPanel(
@@ -441,11 +445,29 @@ ui <- bootstrapPage(
                       )
                     ),
              tabPanel("Data",
+                      h5(HTML("This page is to download the raw CO<sub>2</sub> dataset in CSV format.")),
+                      "Adapted from data collected, aggregated, and documented by ", 
+                      tags$a(href="https://github.com/owid/co2-data/blob/master/owid-co2-data.csv", 
+                             "Hannah Ritchie, Max Roser and Edouard Mathieu."),
                       numericInput("maxrows", "Rows to show", 25),
                       verbatimTextOutput("rawtable"),
                       downloadButton("downloadCsv", "Download as CSV"),tags$br(),tags$br(),
-                      "Adapted from data collected, aggregated, and documented by ", tags$a(href="https://github.com/owid/co2-data/blob/master/owid-co2-data.csv", 
-                                                                         "Hannah Ritchie, Max Roser and Edouard Mathieu.")
+             ),
+             # About tab
+             tabPanel("About",
+                      HTML("<h2>About</h2><br>
+                      This Shiny web app is developed for the Group Project of University of Malaya 
+                      <b>WQD7001 Principles of Data Science</b> by <b>Group 10</b> for <b>2021 March Semester</b>.<br><br>
+                      Members of Group 10:
+                      <ul>
+                        <b>
+                          <li>Thai Yuan Jiun  (17218822)</li>
+                          <li>Sameer Kumar Maurya  (S2038179)</li>
+                          <li>Ng Choon Khon  (S2028941)</li>
+                          <li>Anere Goodness Ayobami  (S2039808)</li>
+                        </b>
+                      </ul>
+                           "),
              )
              
              ))
@@ -677,25 +699,27 @@ server = function(input, output, session) {
       paste("co2", ".csv", sep="")
     },
     content = function(file) {
-      co2_sub = co2 %>% select(c(country, Year, co2_per_capita,consumption_co2_per_capita,
-                                 cumulative_co2, cement_co2_per_capita, coal_co2_per_capita, 
-                                 flaring_co2_per_capita, gas_co2_per_capita,oil_co2_per_capita,
-                                 other_co2_per_capita))
-      names(co2_sub) = c("country", "year", "co2_per_capita", "Consumption_CO2_per_capita", "cumulative_co2", "co2_per_capita(Cement)",
-                         "co2_per_capita(Coal)", "co2_per_capita(Flaring)", "co2_per_capita(Gas)", "co2_per_capita(Oil)", "co2_per_capita(Other)")
-      write.csv(co2_sub, file)
+      # co2_sub = co2 %>% select(c(country, Year, co2_per_capita,consumption_co2_per_capita,
+      #                            cumulative_co2, cement_co2_per_capita, coal_co2_per_capita, 
+      #                            flaring_co2_per_capita, gas_co2_per_capita,oil_co2_per_capita,
+      #                            other_co2_per_capita))
+      # names(co2_sub) = c("country", "year", "co2_per_capita", "Consumption_CO2_per_capita", "cumulative_co2", "co2_per_capita(Cement)",
+      #                    "co2_per_capita(Coal)", "co2_per_capita(Flaring)", "co2_per_capita(Gas)", "co2_per_capita(Oil)", "co2_per_capita(Other)")
+      # write.csv(co2_sub, file)
+      write.csv(co2, file) # CK modified
     }
   )
   
   output$rawtable <- renderPrint({
-   co2_sub = co2 %>% select(c(country, Year, co2_per_capita,consumption_co2_per_capita,
-                            cumulative_co2, cement_co2_per_capita, coal_co2_per_capita, 
-                            flaring_co2_per_capita, gas_co2_per_capita,oil_co2_per_capita,
-                            other_co2_per_capita))
-  names(co2_sub) = c("country", "year", "co2_per_capita", "Consumption_CO2_per_capita", "cumulative_co2", "co2_per_capita(Cement)",
-                             "co2_per_capita(Coal)", "co2_per_capita(Flaring)", "co2_per_capita(Gas)", "co2_per_capita(Oil)", "co2_per_capita(Other)")
+  #  co2_sub = co2 %>% select(c(country, Year, co2_per_capita,consumption_co2_per_capita,
+  #                           cumulative_co2, cement_co2_per_capita, coal_co2_per_capita, 
+  #                           flaring_co2_per_capita, gas_co2_per_capita,oil_co2_per_capita,
+  #                           other_co2_per_capita))
+  # names(co2_sub) = c("country", "year", "co2_per_capita", "Consumption_CO2_per_capita", "cumulative_co2", "co2_per_capita(Cement)",
+  #                            "co2_per_capita(Coal)", "co2_per_capita(Flaring)", "co2_per_capita(Gas)", "co2_per_capita(Oil)", "co2_per_capita(Other)")
     orig <- options(width = 1500)
-    print(tail(co2_sub, input$maxrows), row.names = FALSE)
+    # print(tail(co2_sub, input$maxrows), row.names = FALSE)
+    print(head(co2, input$maxrows), row.names = FALSE) # CK modified
     options(orig)
   })
   
