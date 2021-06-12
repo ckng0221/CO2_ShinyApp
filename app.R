@@ -239,7 +239,7 @@ ui <- bootstrapPage(
   navbarPage(theme = shinytheme("cosmo"), collapsible = FALSE,
              HTML('<a style="text-decoration:none;cursor:default;color:#FFFFFF;" 
                   class="active" href="#">CO<sub>2</sub> Tracker</a>'), id="nav",
-             windowTitle = HTML("CO<sub>2</sub> TRACKER"),
+             windowTitle = HTML("CO2 TRACKER"),
              # Global Map Tab
              tabPanel(HTML("Global CO<sub>2</sub>"),
                       div(class="outer",
