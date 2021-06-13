@@ -5,9 +5,9 @@ account: ckng21
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4262728
-bundleId: 4711730
+bundleId: 4711744
 url: https://ckng21.shinyapps.io/Global_CO2_Tracker/
-when: 1623605556.39846
-lastSyncTime: 1623605556.39847
+when: 1623605997.22745
+lastSyncTime: 1623605997.22747
 asMultiple: FALSE
 asStatic: FALSE
