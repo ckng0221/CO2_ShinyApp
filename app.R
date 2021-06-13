@@ -520,7 +520,7 @@ ui <- bootstrapPage(
                                      Below you'll find key functionalities to help you explore the 
                                      map visualizations using the function available on the map."),
                                      # img(src = "co2worldmap_illustration.png", width = 1000),
-                                     img(src = "Dashboard.png", width = 800),
+                                     img(src = "Dashboard.png", width = 1000),
                                      br(),
                                      br(),
                                      strong(HTML(":: Yearly/ Cumulative CO<sub>2</sub> Emission")),
@@ -539,7 +539,7 @@ ui <- bootstrapPage(
                                      h3("Use the charts"),
                                      h5(HTML("The charts allow you to visualize and analyze sources of CO<sub>2</sub> emission. 
                                      Below you'll find key functionalities to help you explore the charts.")),
-                                     img(src = "sources.png", width = 800),
+                                     img(src = "sources.png", width = 1000),
                                      br(),
                                      br(),
                                      strong(":: Dropdown for Country Selection"),
@@ -563,7 +563,7 @@ ui <- bootstrapPage(
                                      h3("Use the charts"),
                                      h5(HTML("The charts allow you to view countries ranking on the selected CO<sub>2</sub> index. 
                                              Below you'll find key functionalities to help you explore the charts.")),
-                                     img(src = "ranking.png", width = 800),
+                                     img(src = "ranking.png", width = 1000),
                                      br(),
                                      br(),
                                      strong(":: Dropdown for CO2 index selection"),
