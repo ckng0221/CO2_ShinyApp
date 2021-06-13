@@ -239,7 +239,7 @@ ranking_plot <- function(data, column, year, ranking) {
   # filter top 10 countries according to arguments
   top_countries <- data %>% 
     filter(Year==year) %>% 
-    filter(country %in% intersect_country) %>%
+    filter(country %in% unique(co2_map$country)) %>%
     select(country, {{column}})
   if (ranking == "highest") {
     top_countries <-  top_countries[order(-top_countries[2]), ]
