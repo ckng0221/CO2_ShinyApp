@@ -388,16 +388,20 @@ ui <- bootstrapPage(
                       )),
              
              # Atmospheric CO2 tab
-             tabPanel(HTML("Atmospheric CO<sub>2</sub>"),
-                      titlePanel(HTML("Relationship between CO<sub>2</sub> & Global Temperature")),
+             tabPanel(HTML("Effect of CO<sub>2</sub>"),
+                      titlePanel(HTML("Relationship of CO<sub>2</sub>, Global Temperature, & Mean Sea Level")),
                       sidebarLayout(
                         position = "left", 
                         sidebarPanel(
-                          width = 2,
-                          h6(HTML("How CO<sub>2</sub> affect global temperature and mean sea level?")),
-                          radioButtons("relationship", h3(""),
-                                              choices = list("Temperature" = 1, "Mean Sea Level" = 2)
-                                       ,selected = 1),
+                          width = 3,
+                          h6(HTML("How CO<sub>2</sub> affect global temperature and mean sea level?
+                                  <ul>
+                                      <li>Temperature</li>
+                                      <li>Sea Level</li>
+                                    </ul>")),
+                          # radioButtons("relationship", h3(""),
+                          #                     choices = list("Temperature" = 1, "Mean Sea Level" = 2)
+                          #              ,selected = 1),
                         ),
                         mainPanel(
                           tabsetPanel(
