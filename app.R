@@ -461,7 +461,8 @@ ui <- bootstrapPage(
                                       min = 1970,
                                       max = 2019,
                                       value = 2019,
-                                      sep = ""),
+                                      sep = "",
+                                      animate=animationOptions(interval = 500, loop = FALSE)),
                           br(),
                         ),
                         mainPanel(
