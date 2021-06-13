@@ -304,6 +304,8 @@ index_table[["CO2 Production"]] <- "co2"
 index_table[["CO2 Production per Capita"]] <- "co2_per_capita"
 index_table[["Cumulative CO2 Production"]] <- "cumulative_co2"
 
+# Codebook
+codebook <- read.csv("input_data/codebook.csv")
 
 #========== SHINY UI ==========
 ui <- bootstrapPage(
@@ -559,8 +561,8 @@ ui <- bootstrapPage(
                                      ),
                             tabPanel("Country Ranking", 
                                      h3("Use the charts"),
-                                     h5(HTML("The charts allow you to visualize and analyze sources of CO<sub>2</sub> emission. 
-                                     Below you'll find key functionalities to help you explore the charts.")),
+                                     h5(HTML("The charts allow you to view countries ranking on the selected CO<sub>2</sub> index. 
+                                             Below you'll find key functionalities to help you explore the charts.")),
                                      img(src = "ranking.png", width = 800),
                                      br(),
                                      br(),
@@ -581,31 +583,42 @@ ui <- bootstrapPage(
              # Download CSV Data Tab
              tabPanel("Data",
                       h2("Datasets"),
-                      HTML("This page is to download the dependency datasets of CO<sub>2</sub> in CSV format.<br>"),
-                      # CO2 Data
-                      HTML("<h3>CO<sub>2</sub> Dataset</h3>"),
-                      numericInput("maxrows", "Rows to show", 25),
-                      verbatimTextOutput("rawtable"),
-                      "Adapted from data collected, aggregated, and documented by ", 
-                      tags$a(href="https://github.com/owid/co2-data/blob/master/owid-co2-data.csv", 
-                             "Hannah Ritchie, Max Roser and Edouard Mathieu."),
-                      br(),
-                      br(),
-                      downloadButton("downloadCsv", "Download as CSV"),tags$br(),tags$br(),
-                      
-                      # Global Temperature Data
-                      HTML("<h3>Global Temperature Dataset</h3>"),
-                      numericInput("maxrows", "Rows to show", 25),
-                      verbatimTextOutput("rawtable2"),
-                      downloadButton("downloadCsv2", "Download as CSV"),tags$br(),tags$br(),
-                      
-                      # Mean Sea Level
-                      HTML("<h3>Mean Sea Level Dataset</h3>"),
-                      numericInput("maxrows", "Rows to show", 25),
-                      verbatimTextOutput("rawtable3"),
-                      downloadButton("downloadCsv3", "Download as CSV"),tags$br(),tags$br(),                   
-                      
-                      
+                      HTML("This page is to download the datasets of involved in the web app in CSV format.<br>"),
+                      mainPanel(
+                        tabsetPanel( # CO2 dataset
+                          tabPanel(
+                                   HTML("CO<sub>2</sub> Dataset"),
+                                   numericInput("maxrows", "Rows to show", 25),
+                                   verbatimTextOutput("rawtable"),
+                                   "Adapted from data collected, aggregated, and documented by ", 
+                                   tags$a(href="https://github.com/owid/co2-data/blob/master/owid-co2-data.csv", 
+                                          "Hannah Ritchie, Max Roser and Edouard Mathieu."),
+                                   br(), br(),
+                                   downloadButton("downloadCsv", "Download as CSV"),tags$br(),tags$br(),
+                                   
+                                   # Codebook
+                                   HTML("<br><b><h3>Codebook for CO<sub>2</sub> Dataset</h3></b>"),
+                                   numericInput("maxrows", "Rows to show", 25),
+                                   verbatimTextOutput("rawtable_codebook"),
+                                   br(),
+                                   HTML("For further info please check on the original 
+                      <a href=https://github.com/owid/co2-data>co2-data</a> repository on
+                           GitHub."),
+                                   br(), br(),
+                                   downloadButton("downloadCsv_codebook", "Download as CSV"),tags$br(),tags$br(),
+                                   
+                          ),
+                            # Global Temperature Data
+                            tabPanel(HTML("Global Temperature Dataset"),
+                                     numericInput("maxrows", "Rows to show", 25),
+                                     verbatimTextOutput("rawtable2"),
+                                     downloadButton("downloadCsv2", "Download as CSV"),tags$br(),tags$br()),
+                            
+                            # Mean Sea Level
+                            tabPanel(HTML("Mean Sea Level Dataset"),
+                                     numericInput("maxrows", "Rows to show", 25),
+                                     verbatimTextOutput("rawtable3"),
+                                     downloadButton("downloadCsv3", "Download as CSV"),tags$br(),tags$br())))  
              ),
              # About tab
              tabPanel("About",
@@ -875,7 +888,7 @@ server = function(input, output, session) {
   #                           other_co2_per_capita))
   # names(co2_sub) = c("country", "year", "co2_per_capita", "Consumption_CO2_per_capita", "cumulative_co2", "co2_per_capita(Cement)",
   #                            "co2_per_capita(Coal)", "co2_per_capita(Flaring)", "co2_per_capita(Gas)", "co2_per_capita(Oil)", "co2_per_capita(Other)")
-    orig <- options(width = 1500)
+    orig <- options(width = 2000)
     # print(tail(co2_sub, input$maxrows), row.names = FALSE)
     print(head(co2, input$maxrows), row.names = FALSE) # CK modified
     options(orig)
@@ -896,7 +909,7 @@ server = function(input, output, session) {
   output$rawtable2 <- renderPrint({
     temp_sub = temperature %>% select(Year, No_Smoothing)
     names(temp_sub) = c("Year","Temp")
-    orig <- options(width = 1500)
+    orig <- options(width = 2000)
     print(tail(temp_sub, input$maxrows), row.names = FALSE)
     options(orig)
   })
@@ -916,8 +929,26 @@ server = function(input, output, session) {
   output$rawtable3 <- renderPrint({
     SL_sub = SL %>% select(Year, GMSL)
     names(SL_sub) = c("Year","MSL")
-    orig <- options(width = 1500)
-    print(tail(SL_sub, input$maxrows), row.names = FALSE)
+    orig <- options(width = 2000)
+    print(head(SL_sub, input$maxrows), row.names = FALSE)
+    options(orig)
+  })
+  
+  # Codebook
+  output$downloadCsv_codebook <- downloadHandler(
+    filename = function() {
+      paste("input_data/codebook", ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(codebook, file)
+    }
+  )
+  
+  output$rawtable_codebook <- renderPrint({
+    # SL_sub = SL %>% select(Year, GMSL)
+    # names(SL_sub) = c("Year","MSL")
+    orig <- options(width = 2000)
+    print(head(codebook, input$maxrows), row.names = FALSE)
     options(orig)
   })
   
