@@ -230,7 +230,56 @@ globaltemp_plot2_func <- function(){
   p3
 }
 
-
+# ---- Top Countries plot ----------
+top_ranking_plot <- function(data, column, year) {
+  # Return top 10 countries plot
+  # Data : dataframe ; 
+  # column : dataframe columns (only co2, co2_per_capita, cumulative_co2)
+  
+  # filter top 10 countries according to arguments
+  top_countries <- data %>% 
+    filter(Year==year) %>% 
+    filter(country %in% intersect_country) %>%
+    select(country, {{column}})
+  top_countries <-  top_countries[order(-top_countries[2]), ]
+  top10_countries <- head(top_countries, 10)
+  top10_countries$country <- factor(top10_countries$country, 
+                                    levels = unique(top10_countries$country)[order(top10_countries[[2]], 
+                                                                                   decreasing = TRUE)])
+  # initial plotly plot
+  fig <- plot_ly(
+    x = top10_countries$country,
+    y = top10_countries[[2]],
+    type = "bar",
+    marker = list(color = 'rgb(158,202,225)',
+                  line = list(color = 'rgb(8,48,107)',
+                              width = 1.5)),
+    texttemplate = '%{y:.2s}', textposition = 'outside'
+  )
+  
+  # For y-axis title based on selected column
+  choose_title <- function() {
+    title_col <- colnames(top10_countries[2])
+    if (title_col == "co2") {
+      return('CO<sub>2</sub> Emission (mil tonnes/year)')
+    } else if (title_col == "co2_per_capita") {
+      return('CO<sub>2</sub> Emission per capita (tonnes/year)')
+    } else if (title_col == "cumulative_co2") {
+      return('Cumulative CO<sub>2</sub> Emission (mil tonnes/year)')
+    }
+  }
+  
+  fig <- fig %>% layout(title = sprintf('<b>Top 10 Countries in Year %s </b>', year),
+                        yaxis = list(title = choose_title(),
+                                     titlefont = list(
+                                       size = 12)))
+  return(fig)
+}
+# Hash table for column name matching
+index_table <- hash()
+index_table[["CO2 Emission"]] <- "co2"
+index_table[["CO2 Emission per Capita"]] <- "co2_per_capita"
+index_table[["Cumulative CO2 Emission"]] <- "cumulative_co2"
 
 
 #========== SHINY UI ==========
@@ -315,7 +364,7 @@ ui <- bootstrapPage(
                         )
                       )),
              
-             # Sameer Part
+             # Atmospheric CO2 tab
              tabPanel(HTML("Atmospheric CO<sub>2</sub>"),
                       titlePanel(HTML("Relationship between CO<sub>2</sub> & Global Temperature")),
                       sidebarLayout(
@@ -372,6 +421,36 @@ ui <- bootstrapPage(
                           )
                         ))),
              
+             # Top Countries Tab
+             tabPanel("Top Countries",
+                      titlePanel(""),
+                      sidebarLayout(
+                        position = "left",
+                        sidebarPanel(
+                          width = 3,
+                          pickerInput("carbon_index", HTML("Select CO<sub>2</sub> Index:"),
+                                      choices = c("CO2 Emission",
+                                                  "CO2 Emission per Capita",
+                                                  "Cumulative CO2 Emission"),
+                                      selected = "CO2 Emission"),
+                          sliderInput("wanted_year",
+                                      "Year:",
+                                      min = 1970,
+                                      max = 2019,
+                                      value = 2019,
+                                      sep = ""),
+                          br(),
+                        ),
+                        mainPanel(
+                          tabsetPanel(
+                            tabPanel("Top Countries",
+                                     br(),
+                                     plotlyOutput("topcountry_plot"))
+                          )
+                        )
+                      )),
+             
+             # User guide tab
              tabPanel("User Guide",
                       titlePanel(HTML("CO<sub>2</sub> Tracker")),
                       
@@ -488,9 +567,9 @@ ui <- bootstrapPage(
                         </b>
                       </ul>
                       <br>
-                      For the all the data and Shiny App can be found on GitHub as follows:<br>
-                      <a href='https://github.com/ckng0221/CO2_ShinyApp'>
-                      https://github.com/ckng0221/CO2_ShinyApp</a>
+                      For the all the data and Shiny App can be found on 
+                      <a href='https://github.com/ckng0221/CO2_ShinyApp'>GitHub</a>
+                      and <a href='https://ckng21.shinyapps.io/Global_CO2_Tracker/'>shinyapps.io</a>.
                            "),
              )
              
@@ -787,6 +866,10 @@ server = function(input, output, session) {
     options(orig)
   })
   
+  # Top countries server
+  output$topcountry_plot <- renderPlotly(
+    top_ranking_plot(data = co2, column = index_table[[input$carbon_index]], year=input$wanted_year)
+  )
   
   
 }
