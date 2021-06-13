@@ -506,7 +506,8 @@ ui <- bootstrapPage(
                                      h5("The map allows you to visualize and analyze spatial data. 
                                      Below you'll find key functionalities to help you explore the 
                                      map visualizations using the function available on the map."),
-                                     img(src = "co2worldmap_illustration.png", width = 1000),
+                                     # img(src = "co2worldmap_illustration.png", width = 1000),
+                                     img(src = "CO2interface.jpg", width = 800),
                                      br(),
                                      br(),
                                      strong(HTML(":: Yearly/ Cumulative CO<sub>2</sub> Emission")),
