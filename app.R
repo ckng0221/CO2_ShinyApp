@@ -167,7 +167,7 @@ ay1 <- list(
   tickfont = list(color = "green"),
   overlaying = "y",
   side = "right",
-  title = "Global Mean Sea Level"
+  title = "Global Mean Sea Level (mm)"
 )
 
 
@@ -387,17 +387,17 @@ ui <- bootstrapPage(
                         )
                       )),
              
-             # Atmospheric CO2 tab
+             # Effect of CO2 tab
              tabPanel(HTML("Effect of CO<sub>2</sub>"),
                       titlePanel(HTML("Relationship of CO<sub>2</sub>, Global Temperature, & Mean Sea Level")),
                       sidebarLayout(
                         position = "left", 
                         sidebarPanel(
                           width = 3,
-                          h6(HTML("How CO<sub>2</sub> affect global temperature and mean sea level?
+                          h6(HTML("How CO<sub>2</sub> affect global temperature and mean sea level?<br><br>
                                   <ul>
                                       <li>Temperature</li>
-                                      <li>Sea Level</li>
+                                      <li>Mean Sea Level</li>
                                     </ul>")),
                           # radioButtons("relationship", h3(""),
                           #                     choices = list("Temperature" = 1, "Mean Sea Level" = 2)
@@ -405,44 +405,50 @@ ui <- bootstrapPage(
                         ),
                         mainPanel(
                           tabsetPanel(
-                            # Tab 
+                            # Relationship Tab 
                             tabPanel("Relationship",
                                      br(),
+                                     HTML("Carbon dioxide (CO2) emission has been steadily rising from 1993 to 2019. 
+                                          As visualized, global temperature and mean sea level is correlated with
+                                          carbon dioxide emission along the years. 
+                                          As the carbon dioxide emission increase,
+                                          both the global temperature and mean sea level increases as well.<br><br>"),
                             plotlyOutput("relationshipchart_temp"),
-                            plotlyOutput("relationshipchart_GMSL")),
-                              # Tab 1
-                              tabPanel(HTML("CO<sub>2</sub> Concentration vs. CO<sub>2</sub> Emission"),
-                                       h6(HTML(
-                                          "The atmospheric level of carbon dioxide (CO<sub>2</sub>) has been steadily rising since the 1960's. 
-                                          In 2019, carbon dioxide levels reached 411 parts per million, 
-                                          in comparison to 1960 levels which stood at about 317 parts per million. 
-                                          Projections for 2020 show concentrations of carbon dioxide have increased to 414 parts per million. 
-                                          Emissions of carbon dioxide largely come from human activities such as burning fossil fuels and deforestation. 
-                                          Data is taken from Mauna Loa CO<sub>2</sub> annual mean data. Data has been measured at Mauna Loa Observatory, 
-                                          Hawaii as it constitutes the longest record of direct carbon dioxide measurements in the atmosphere."
-                                       )),
-                                       h6(HTML(
-                                          "Global climate change is mostly triggered by
-                                          carbon dioxide emissions.
-                                          It’s widely recognized that to avoid the worst impacts of climate change, 
-                                          the world needs to urgently reduce emissions. This graph illustrates the change in Carbon Dioxide (CO<sub>2</sub>)
-                                          emission based on annual production from 1959 to 2019. CO<sub>2</sub> emissions data from Our World 
-                                          in Data and the Global Carbon Project."
-                                       )),
-                                       br(),
-                                       plotOutput("globaltemp_plot1")),
-                              # Tab 2
-                              tabPanel("Global Temperature",
-                                       h6(
-                                       "This graph illustrates the change in global temperature (°C) from 1880 to 2019. 
-                                       Nineteen of the warmest years have occurred since 2000, with the exception of 1998. 
-                                       The year 2020 tied with 2016 for the warmest year on record since record-keeping began in 1880."
-                                       ),
-                                       h6(
-                                       "Data is taken from Global Climate Change."
-                                       ),
-                                       br(),
-                                       plotOutput('globaltemp_plot2'))
+                            br(),br(),
+                            plotlyOutput("relationshipchart_GMSL"))
+                              # # CO2 concentration vs Co2 emission tab
+                              # tabPanel(HTML("CO<sub>2</sub> Concentration vs. CO<sub>2</sub> Emission"),
+                              #          h6(HTML(
+                              #             "The atmospheric level of carbon dioxide (CO<sub>2</sub>) has been steadily rising since the 1960's. 
+                              #             In 2019, carbon dioxide levels reached 411 parts per million, 
+                              #             in comparison to 1960 levels which stood at about 317 parts per million. 
+                              #             Projections for 2020 show concentrations of carbon dioxide have increased to 414 parts per million. 
+                              #             Emissions of carbon dioxide largely come from human activities such as burning fossil fuels and deforestation. 
+                              #             Data is taken from Mauna Loa CO<sub>2</sub> annual mean data. Data has been measured at Mauna Loa Observatory, 
+                              #             Hawaii as it constitutes the longest record of direct carbon dioxide measurements in the atmosphere."
+                              #          )),
+                              #          h6(HTML(
+                              #             "Global climate change is mostly triggered by
+                              #             carbon dioxide emissions.
+                              #             It’s widely recognized that to avoid the worst impacts of climate change, 
+                              #             the world needs to urgently reduce emissions. This graph illustrates the change in Carbon Dioxide (CO<sub>2</sub>)
+                              #             emission based on annual production from 1959 to 2019. CO<sub>2</sub> emissions data from Our World 
+                              #             in Data and the Global Carbon Project."
+                              #          )),
+                              #          br(),
+                              #          plotOutput("globaltemp_plot1")),
+                              # Global Temperature Tab
+                              # tabPanel("Global Temperature",
+                              #          h6(
+                              #          "This graph illustrates the change in global temperature (°C) from 1880 to 2019. 
+                              #          Nineteen of the warmest years have occurred since 2000, with the exception of 1998. 
+                              #          The year 2020 tied with 2016 for the warmest year on record since record-keeping began in 1880."
+                              #          ),
+                              #          h6(
+                              #          "Data is taken from Global Climate Change."
+                              #          ),
+                              #          br(),
+                              #          plotOutput('globaltemp_plot2'))
                               
                               
                           )
@@ -512,7 +518,7 @@ ui <- bootstrapPage(
                                      Below you'll find key functionalities to help you explore the 
                                      map visualizations using the function available on the map."),
                                      # img(src = "co2worldmap_illustration.png", width = 1000),
-                                     img(src = "CO2interface.jpg", width = 800),
+                                     img(src = "Dashboard.png", width = 800),
                                      br(),
                                      br(),
                                      strong(HTML(":: Yearly/ Cumulative CO<sub>2</sub> Emission")),
@@ -531,7 +537,7 @@ ui <- bootstrapPage(
                                      h3("Use the charts"),
                                      h5(HTML("The charts allow you to visualize and analyze sources of CO<sub>2</sub> emission. 
                                      Below you'll find key functionalities to help you explore the charts.")),
-                                     img(src = "dashboard_illustration.png", width = 1000),
+                                     img(src = "sources.png", width = 800),
                                      br(),
                                      br(),
                                      strong(":: Dropdown for Country Selection"),
@@ -550,7 +556,24 @@ ui <- bootstrapPage(
                                      strong(":: Play Button for Cumulative Proportion"),
                                      h5(HTML("This play button is associated only with bar chart for [Cumulative Percentage of CO<sub>2</sub> Emission by Sources]. Click the play button to see 
                                         how the cumulative CO<sub>2</sub> emission percentages change across the year on selected country."))
-                                     )
+                                     ),
+                            tabPanel("Country Ranking", 
+                                     h3("Use the charts"),
+                                     h5(HTML("The charts allow you to visualize and analyze sources of CO<sub>2</sub> emission. 
+                                     Below you'll find key functionalities to help you explore the charts.")),
+                                     img(src = "ranking.png", width = 800),
+                                     br(),
+                                     br(),
+                                     strong(":: Dropdown for CO2 index selection"),
+                                     h5("Select a CO2 index to view its ranking among the countries. The ranking charts will be adjusted based on CO2 index selected."),
+                                     strong(":: Select Type of Charts"),
+                                     h5(HTML("Switch between different tabs to view top 10 or bottom 10 countries rankings for selected CO2 index.")),
+                                     strong(":: Select Type of Charts"),
+                                     h5("Switch between different tabs to view sources of emission or type of emission (production emission vs consumption emission) 
+                                        for a selected country."),
+                                     strong(":: Play Button "),
+                                     h5("The largest sources of cumulative emission displayed in text for selected country."),
+                            )
                           )
                         )
                       )
@@ -819,7 +842,7 @@ server = function(input, output, session) {
       output$relationshipchart_GMSL <- renderPlotly({
       fig1 <- plot_ly(temp_co2)
       fig1 <- fig1 %>% add_trace(x = ~Year, y = ~co2,type="bar", name = HTML("CO<sub>2</sub> Emission (ppm)"))
-      fig1 <- fig1 %>% add_lines(x = ~Year, y = ~GMSL, name = "Global Mean Sea Level", yaxis = "y2")
+      fig1 <- fig1 %>% add_lines(x = ~Year, y = ~GMSL, name = "Global Mean Sea Level (mm)", yaxis = "y2")
       fig1 <- fig1 %>% layout(
         title = HTML("Relationship between CO<sub>2</sub> Emission and Global Mean Sea Level"), yaxis2 = ay1,
         xaxis = list(title="Year")
