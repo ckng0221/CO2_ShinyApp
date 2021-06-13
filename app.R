@@ -273,11 +273,11 @@ ranking_plot <- function(data, column, year, ranking) {
   choose_title <- function() {
     title_col <- colnames(top10_countries[2])
     if (title_col == "co2") {
-      return('CO<sub>2</sub> Emission (mil tonnes/year)')
+      return('CO<sub>2</sub> Production (mil tonnes/year)')
     } else if (title_col == "co2_per_capita") {
-      return('CO<sub>2</sub> Emission per capita (tonnes/year)')
+      return('CO<sub>2</sub> Production per capita (tonnes/year)')
     } else if (title_col == "cumulative_co2") {
-      return('Cumulative CO<sub>2</sub> Emission (mil tonnes/year)')
+      return('Cumulative CO<sub>2</sub> Production (mil tonnes/year)')
     }
   }
   # for different wordings for different columns
@@ -300,9 +300,9 @@ ranking_plot <- function(data, column, year, ranking) {
 }
 # Hash table for column name matching
 index_table <- hash()
-index_table[["CO2 Emission"]] <- "co2"
-index_table[["CO2 Emission per Capita"]] <- "co2_per_capita"
-index_table[["Cumulative CO2 Emission"]] <- "cumulative_co2"
+index_table[["CO2 Production"]] <- "co2"
+index_table[["CO2 Production per Capita"]] <- "co2_per_capita"
+index_table[["Cumulative CO2 Production"]] <- "cumulative_co2"
 
 
 #========== SHINY UI ==========
@@ -444,7 +444,7 @@ ui <- bootstrapPage(
                           )
                         ))),
              
-             # TCountry Tanking Tab
+             # Country Ranking Tab
              tabPanel("Country Ranking",
                       titlePanel(""),
                       sidebarLayout(
@@ -452,10 +452,10 @@ ui <- bootstrapPage(
                         sidebarPanel(
                           width = 3,
                           pickerInput("carbon_index", HTML("Select CO<sub>2</sub> Index:"),
-                                      choices = c("CO2 Emission",
-                                                  "CO2 Emission per Capita",
-                                                  "Cumulative CO2 Emission"),
-                                      selected = "CO2 Emission"),
+                                      choices = c("CO2 Production",
+                                                  "CO2 Production per Capita",
+                                                  "Cumulative CO2 Production"),
+                                      selected = "CO2 Production"),
                           sliderInput("wanted_year",
                                       "Year:",
                                       min = 1970,
