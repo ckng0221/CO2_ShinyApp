@@ -458,7 +458,7 @@ ui <- bootstrapPage(
                                       selected = "CO2 Production"),
                           sliderInput("wanted_year",
                                       "Year:",
-                                      min = 1970,
+                                      min = 1850,
                                       max = 2019,
                                       value = 2019,
                                       sep = "",
