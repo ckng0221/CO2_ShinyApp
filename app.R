@@ -20,7 +20,7 @@ if(!require(tidyr)) install.packages("tidyr", repos = "http://cran.us.r-project.
 if(!require(scales)) install.packages("scales", repos = "http://cran.us.r-project.org")
 if(!require(patchwork)) install.packages("patchwork", repos = "http://cran.us.r-project.org")
 if(!require(ggplot2)) install.packages("ggplot2", repos = "http://cran.us.r-project.org")
-
+if(!require(hash)) install.packages("hash", repos = "http://cran.us.r-project.org")
 
 # set mapping colour for each outbreak
 co2_yearly_col <- "#014419"
@@ -230,8 +230,8 @@ globaltemp_plot2_func <- function(){
   p3
 }
 
-# ---- Top Countries plot ----------
-top_ranking_plot <- function(data, column, year) {
+# ---- Top & Bottom Countries plot ----------
+ranking_plot <- function(data, column, year, ranking) {
   # Return top 10 countries plot
   # Data : dataframe ; 
   # column : dataframe columns (only co2, co2_per_capita, cumulative_co2)
@@ -241,20 +241,32 @@ top_ranking_plot <- function(data, column, year) {
     filter(Year==year) %>% 
     filter(country %in% intersect_country) %>%
     select(country, {{column}})
-  top_countries <-  top_countries[order(-top_countries[2]), ]
-  top10_countries <- head(top_countries, 10)
-  top10_countries$country <- factor(top10_countries$country, 
-                                    levels = unique(top10_countries$country)[order(top10_countries[[2]], 
-                                                                                   decreasing = TRUE)])
+  if (ranking == "highest") {
+    top_countries <-  top_countries[order(-top_countries[2]), ]
+    top10_countries <- head(top_countries, 10)
+    top10_countries$country <- factor(top10_countries$country, 
+                                      levels = unique(top10_countries$country)[order(top10_countries[[2]], 
+                                                                                     decreasing = TRUE)])
+    bar_color <- 'rgb(158, 202, 225)'
+  } else if (ranking == "bottom") {
+    top_countries <-  top_countries[order(top_countries[2]), ]
+    top10_countries <- head(top_countries, 10)
+    top10_countries$country <- factor(top10_countries$country, 
+                                      levels = unique(top10_countries$country)[order(top10_countries[[2]], 
+                                                                                     decreasing = FALSE)])
+    bar_color <- 'rgb(122, 230, 150)'
+  }
+
   # initial plotly plot
   fig <- plot_ly(
     x = top10_countries$country,
     y = top10_countries[[2]],
     type = "bar",
-    marker = list(color = 'rgb(158,202,225)',
+    marker = list(color = bar_color,
                   line = list(color = 'rgb(8,48,107)',
                               width = 1.5)),
-    texttemplate = '%{y:.2s}', textposition = 'outside'
+    # texttemplate = '%{y:.2s}', 
+    textposition = 'outside'
   )
   
   # For y-axis title based on selected column
@@ -268,8 +280,19 @@ top_ranking_plot <- function(data, column, year) {
       return('Cumulative CO<sub>2</sub> Emission (mil tonnes/year)')
     }
   }
+  # for different wordings for different columns
+  if (column=="cumulative_co2") { 
+    connect_text <- "as at"
+  } else {
+    connect_text <- "in"
+  }
   
-  fig <- fig %>% layout(title = sprintf('<b>Top 10 Countries in Year %s </b>', year),
+  if (ranking == "highest") {
+    title_text <- sprintf('<b>Top 10 Countries %s Year %s </b>', connect_text, year)
+  } else if (ranking == "bottom") {
+    title_text <- sprintf('<b>Bottom 10 Countries %s Year %s </b>', connect_text, year)
+  }
+  fig <- fig %>% layout(title = title_text,
                         yaxis = list(title = choose_title(),
                                      titlefont = list(
                                        size = 12)))
@@ -421,8 +444,8 @@ ui <- bootstrapPage(
                           )
                         ))),
              
-             # Top Countries Tab
-             tabPanel("Top Countries",
+             # TCountry Tanking Tab
+             tabPanel("Country Ranking",
                       titlePanel(""),
                       sidebarLayout(
                         position = "left",
@@ -445,7 +468,10 @@ ui <- bootstrapPage(
                           tabsetPanel(
                             tabPanel("Top Countries",
                                      br(),
-                                     plotlyOutput("topcountry_plot"))
+                                     plotlyOutput("topcountry_plot")),
+                            tabPanel("Bottom Countries",
+                                     br(),
+                                     plotlyOutput("bottomcountry_plot"))
                           )
                         )
                       )),
@@ -868,7 +894,11 @@ server = function(input, output, session) {
   
   # Top countries server
   output$topcountry_plot <- renderPlotly(
-    top_ranking_plot(data = co2, column = index_table[[input$carbon_index]], year=input$wanted_year)
+    ranking_plot(data = co2, column = index_table[[input$carbon_index]], year=input$wanted_year, ranking="highest" )
+  )
+  
+  output$bottomcountry_plot <- renderPlotly(
+    ranking_plot(data = co2, column = index_table[[input$carbon_index]], year=input$wanted_year, ranking="bottom" )
   )
   
   
