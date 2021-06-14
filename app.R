@@ -570,11 +570,8 @@ ui <- bootstrapPage(
                                      h5("Select a CO2 index to view its ranking among the countries. The ranking charts will be adjusted based on CO2 index selected."),
                                      strong(":: Select Type of Charts"),
                                      h5(HTML("Switch between different tabs to view top 10 or bottom 10 countries rankings for selected CO2 index.")),
-                                     strong(":: Select Type of Charts"),
-                                     h5("Switch between different tabs to view sources of emission or type of emission (production emission vs consumption emission) 
-                                        for a selected country."),
                                      strong(":: Play Button "),
-                                     h5("The largest sources of cumulative emission displayed in text for selected country."),
+                                     h5("Click the play button to see how the countries ranking change across the year on selected CO2 index."),
                             )
                           )
                         )
